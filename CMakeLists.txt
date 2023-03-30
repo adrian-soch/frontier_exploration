@@ -14,9 +14,10 @@ find_package(nav_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(action_msgs REQUIRED)
+find_package(frontier_interfaces REQUIRED)
 
 add_executable(exploration_node src/exploration.cpp)
-ament_target_dependencies(exploration_node rclcpp std_msgs)
+ament_target_dependencies(exploration_node rclcpp nav_msgs geometry_msgs frontier_interfaces)
 
 target_include_directories(exploration_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

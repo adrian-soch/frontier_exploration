@@ -12,27 +12,30 @@
 #ifndef FRONTIER_EXPLORER
 #define FRONTIER_EXPLORER
 
-#include <chrono>
-#include <string>
+#include <memory>
+
+#include "frontier_interfaces/srv/frontier_goal.hpp"
  
 #include "rclcpp/rclcpp.hpp"
-#include "std_msgs/msg/string.hpp"
- 
-using namespace std::chrono_literals;
+#include <nav_msgs/msg/occupancy_grid.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
+
+using std::placeholders::_1;
+using std::placeholders::_2;
 
 class FrontierExplorer : public rclcpp::Node
 {
-  public:
-    FrontierExplorer();
+    public:
+        FrontierExplorer();
  
-  private:
+    private:
+        rclcpp::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr map_subscription_;
+        rclcpp::Service<frontier_interfaces::srv::FrontierGoal>::SharedPtr service_;
 
-    void timer_callback();
-     
-    // Declaration of the timer_ attribute
-    rclcpp::TimerBase::SharedPtr timer_;
-  
-    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
+        void map_callback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg);
+
+        void get_frontiers(const std::shared_ptr<frontier_interfaces::srv::FrontierGoal::Request> request,
+            std::shared_ptr<frontier_interfaces::srv::FrontierGoal::Response> response);
 };
 
 #endif

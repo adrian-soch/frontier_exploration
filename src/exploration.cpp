@@ -6,8 +6,7 @@
  * @date 2023-03-11
  * 
  * @todo
- *      - Publish on goal topic for robot to navigate
- *      - sub to occupancy grid map
+ *      - serve goal requests from navigation node
  *      - implement frontier based exploration algorithm
  * 
  * @copyright Copyright (c) 2023
@@ -18,32 +17,43 @@
 FrontierExplorer::FrontierExplorer()
 : Node("frontier_explorer")
 {
-    publisher_ = this->create_publisher<std_msgs::msg::String>("topic", 10);
-    
-    // The timer_callback function will execute every 500ms
-    timer_ = this->create_wall_timer(
-    500ms, std::bind(&FrontierExplorer::timer_callback, this));
+    map_subscription_ = this->create_subscription<nav_msgs::msg::OccupancyGrid>(
+        "map", 1, std::bind(&FrontierExplorer::map_callback, this, _1));
+
+    service_ = this->create_service<frontier_interfaces::srv::FrontierGoal>(
+        "frontier_pose", std::bind(&FrontierExplorer::get_frontiers, this, _1, _2));
 }
 
-void FrontierExplorer::timer_callback()
+void FrontierExplorer::map_callback(const nav_msgs::msg::OccupancyGrid::SharedPtr recent_map)
 {
-    auto message = std_msgs::msg::String();
-    message.data = "test";
+    auto width = recent_map->info.width;
+    auto height = recent_map->info.height;
 
-    // Print every message to the terminal window      
-    RCLCPP_INFO(this->get_logger(),"Publishing: '%s'", message.data.c_str());
+    RCLCPP_INFO(this->get_logger(),"Map recieved w: %d h: %d.\n.", width, height);
+}
+
+void FrontierExplorer::get_frontiers(const std::shared_ptr<frontier_interfaces::srv::FrontierGoal::Request> request,
+          std::shared_ptr<frontier_interfaces::srv::FrontierGoal::Response> response)
+{
+    RCLCPP_INFO(this->get_logger(), "Received request, %d", request->goal_rank);
     
-    publisher_->publish(message);
+
+    geometry_msgs::msg::PoseStamped goal_pose;
+    goal_pose.header.stamp = this->get_clock()->now();
+    response->goal_pose;
+
+   
+    // RCLCPP_INFO(this->get_logger(), "sending back response");
 }
 
 int main(int argc, char * argv[])
 {
-  rclcpp::init(argc, argv);
-  
-  // Start processing data from the node as well as the callbacks and the timer
-  rclcpp::spin(std::make_shared<FrontierExplorer>());
- 
-  // Shutdown the node when finished
-  rclcpp::shutdown();
-  return 0;
+    rclcpp::init(argc, argv);
+    
+    // Start processing data from the node as well as the callbacks and the timer
+    rclcpp::spin(std::make_shared<FrontierExplorer>());
+    
+    // Shutdown the node when finished
+    rclcpp::shutdown();
+    return 0;
 }
