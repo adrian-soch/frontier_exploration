@@ -13,6 +13,7 @@
 #define FRONTIER_EXPLORER
 
 #include <memory>
+#include <mutex>
 
 #include "frontier_interfaces/srv/frontier_goal.hpp"
  
@@ -29,6 +30,10 @@ class FrontierExplorer : public rclcpp::Node
         FrontierExplorer();
  
     private:
+        std::mutex mutex_;
+
+        nav_msgs::msg::OccupancyGrid map_;
+
         rclcpp::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr map_subscription_;
         rclcpp::Service<frontier_interfaces::srv::FrontierGoal>::SharedPtr service_;
 

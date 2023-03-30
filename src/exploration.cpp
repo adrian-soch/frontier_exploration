@@ -28,22 +28,41 @@ void FrontierExplorer::map_callback(const nav_msgs::msg::OccupancyGrid::SharedPt
 {
     auto width = recent_map->info.width;
     auto height = recent_map->info.height;
-
     RCLCPP_INFO(this->get_logger(),"Map recieved w: %d h: %d.\n.", width, height);
+
+    std::lock_guard<std::mutex> guard(mutex_);
+    map_ = *recent_map;
 }
 
 void FrontierExplorer::get_frontiers(const std::shared_ptr<frontier_interfaces::srv::FrontierGoal::Request> request,
           std::shared_ptr<frontier_interfaces::srv::FrontierGoal::Response> response)
 {
     RCLCPP_INFO(this->get_logger(), "Received request, %d", request->goal_rank);
-    
 
+    // Copy the map
+    std::unique_lock<std::mutex> lck(mutex_);
+        nav_msgs::msg::OccupancyGrid map = map_;
+    lck.unlock();
+
+    /**
+     * @todo - Add logic for computing the frontiers
+     *       - rank the frontiers
+     *       - set respose as best frontier location
+     *       - Set the pose angle too?
+     * 
+     */
+
+    // Create and init message
     geometry_msgs::msg::PoseStamped goal_pose;
     goal_pose.header.stamp = this->get_clock()->now();
+    goal_pose.pose.position.x = 0.0;
+    goal_pose.pose.position.y = 0.0;
+    
+    // Set the response
     response->goal_pose;
 
-   
-    // RCLCPP_INFO(this->get_logger(), "sending back response");
+    RCLCPP_INFO(this->get_logger(), "Sending goal x: %f y: %f.",
+        goal_pose.pose.position.x, goal_pose.pose.position.y);
 }
 
 int main(int argc, char * argv[])
