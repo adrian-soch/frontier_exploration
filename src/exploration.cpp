@@ -22,6 +22,9 @@ FrontierExplorer::FrontierExplorer()
 
     service_ = this->create_service<frontier_interfaces::srv::FrontierGoal>(
         "frontier_pose", std::bind(&FrontierExplorer::get_frontiers, this, _1, _2));
+
+    marker_publisher_ = this->create_publisher<visualization_msgs::msg::Marker>("f_markers", 1);
+    frontier_map_publisher_ = this->create_publisher<nav_msgs::msg::OccupancyGrid>("f_map", 1);
 }
 
 void FrontierExplorer::map_callback(const nav_msgs::msg::OccupancyGrid::SharedPtr recent_map)
@@ -44,23 +47,18 @@ void FrontierExplorer::get_frontiers(const std::shared_ptr<frontier_interfaces::
         nav_msgs::msg::OccupancyGrid map = map_;
     lck.unlock();
 
-    frontierCellGrid.clear(); 																						// Optional
-	frontierCellGrid = computeFrontierCellGrid(map.data, map.info.width, map.info.height);
+    frontierCellGrid_.clear();
+	frontierCellGrid_ = computeFrontierCellGrid(map.data, map.info.width, map.info.height);
 	
-	// Print the Frontier Cell Grid
-	//printGrid(frontierCellGrid, map.info.width, map.info.height);
-
-
 	// 2. Compute the Frontier Regions
-	frontierRegions.clear(); 																						// Optional
-	frontierRegions = computeFrontierRegions(frontierCellGrid, map.info.width, map.info.height);
+	frontierRegions_.clear();
+	frontierRegions_ = computeFrontierRegions(frontierCellGrid_, map.info.width, map.info.height);
 	
-    /**
-     * @todo Create a publisher for the frontier map
-     * @todo Create a publisher for frontier regions as a marker in /map frame
-     */
-	// Print the Frontier Regions
-	// printFrontierRegions(frontierRegions);
+    publishFrontiers();
+
+    nav_msgs::msg::OccupancyGrid f_map = map;
+    f_map.data = frontierCellGrid_;
+    frontier_map_publisher_->publish(f_map);
 
     // Create and init message
     geometry_msgs::msg::PoseStamped goal_pose;
@@ -73,6 +71,37 @@ void FrontierExplorer::get_frontiers(const std::shared_ptr<frontier_interfaces::
 
     RCLCPP_INFO(this->get_logger(), "Sending goal x: %f y: %f.",
         goal_pose.pose.position.x, goal_pose.pose.position.y);
+}
+
+void FrontierExplorer::publishFrontiers()
+{
+    visualization_msgs::msg::Marker::SharedPtr sphere_list(new visualization_msgs::msg::Marker);
+    sphere_list->header.frame_id = map_frame_;
+    sphere_list->header.stamp = this->get_clock()->now();
+    sphere_list->type = visualization_msgs::msg::Marker::SPHERE_LIST;
+    sphere_list->action = visualization_msgs::msg::Marker::ADD;
+    sphere_list->scale.x = 0.3; // in meters
+    sphere_list->scale.y = 0.3;
+    sphere_list->scale.z = 0.3;
+    // Set green and alpha(opacity)
+    sphere_list->color.g = 1.0;
+    sphere_list->color.a = 1.0;
+
+    for(auto reg : frontierRegions_) {
+        geometry_msgs::msg::Point p;
+        p.x = reg.x;
+        p.y = reg.y;
+        p.z = 0.3;
+        sphere_list->points.push_back(p);
+    }
+
+    marker_publisher_->publish(*sphere_list);
+}
+
+void FrontierExplorer::publishFrontierMap()
+{
+    
+    // frontier_map_publisher_ ->publish(*f_map);
 }
 
 int main(int argc, char * argv[])

@@ -21,6 +21,8 @@
 #include "rclcpp/rclcpp.hpp"
 #include <nav_msgs/msg/occupancy_grid.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/point.hpp>
+#include <visualization_msgs/msg/marker.hpp>
 
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -31,8 +33,8 @@ class FrontierExplorer : public rclcpp::Node
         FrontierExplorer();
 
     private:
-        std::vector<int> frontierCellGrid;
-        std::vector<frontierRegion> frontierRegions;
+        std::vector<cell> frontierCellGrid_;
+        std::vector<frontierRegion> frontierRegions_;
 
         std::mutex mutex_;
 
@@ -42,11 +44,17 @@ class FrontierExplorer : public rclcpp::Node
 
         rclcpp::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr map_subscription_;
         rclcpp::Service<frontier_interfaces::srv::FrontierGoal>::SharedPtr service_;
+        rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_publisher_;
+        rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr frontier_map_publisher_;
 
         void map_callback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg);
 
         void get_frontiers(const std::shared_ptr<frontier_interfaces::srv::FrontierGoal::Request> request,
             std::shared_ptr<frontier_interfaces::srv::FrontierGoal::Response> response);
+
+        void publishFrontiers();
+
+        void publishFrontierMap();
 };
 
 #endif
