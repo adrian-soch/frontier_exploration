@@ -44,13 +44,23 @@ void FrontierExplorer::get_frontiers(const std::shared_ptr<frontier_interfaces::
         nav_msgs::msg::OccupancyGrid map = map_;
     lck.unlock();
 
+    frontierCellGrid.clear(); 																						// Optional
+	frontierCellGrid = computeFrontierCellGrid(map.data, map.info.width, map.info.height);
+	
+	// Print the Frontier Cell Grid
+	//printGrid(frontierCellGrid, map.info.width, map.info.height);
+
+
+	// 2. Compute the Frontier Regions
+	frontierRegions.clear(); 																						// Optional
+	frontierRegions = computeFrontierRegions(frontierCellGrid, map.info.width, map.info.height);
+	
     /**
-     * @todo - Add logic for computing the frontiers
-     *       - rank the frontiers
-     *       - set respose as best frontier location
-     *       - Set the pose angle too?
-     * 
+     * @todo Create a publisher for the frontier map
+     * @todo Create a publisher for frontier regions as a marker in /map frame
      */
+	// Print the Frontier Regions
+	// printFrontierRegions(frontierRegions);
 
     // Create and init message
     geometry_msgs::msg::PoseStamped goal_pose;

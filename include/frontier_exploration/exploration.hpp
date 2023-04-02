@@ -15,6 +15,7 @@
 #include <memory>
 #include <mutex>
 
+#include "frontier_exploration/frontier_utils.hpp"
 #include "frontier_interfaces/srv/frontier_goal.hpp"
  
 #include "rclcpp/rclcpp.hpp"
@@ -28,9 +29,14 @@ class FrontierExplorer : public rclcpp::Node
 {
     public:
         FrontierExplorer();
- 
+
     private:
+        std::vector<int> frontierCellGrid;
+        std::vector<frontierRegion> frontierRegions;
+
         std::mutex mutex_;
+
+        std::string map_frame_ {"map"};
 
         nav_msgs::msg::OccupancyGrid map_;
 
