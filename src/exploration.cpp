@@ -18,7 +18,7 @@ FrontierExplorer::FrontierExplorer()
 : Node("frontier_explorer")
 {
     map_subscription_ = this->create_subscription<nav_msgs::msg::OccupancyGrid>(
-        "map", 1, std::bind(&FrontierExplorer::map_callback, this, _1));
+        "global_costmap/costmap", 1, std::bind(&FrontierExplorer::map_callback, this, _1));
 
     service_ = this->create_service<frontier_interfaces::srv::FrontierGoal>(
         "frontier_pose", std::bind(&FrontierExplorer::get_frontiers, this, _1, _2));
@@ -52,13 +52,14 @@ void FrontierExplorer::get_frontiers(const std::shared_ptr<frontier_interfaces::
 	
 	// 2. Compute the Frontier Regions
 	frontierRegions_.clear();
-	frontierRegions_ = computeFrontierRegions(frontierCellGrid_, map.info.width, map.info.height);
-	
-    publishFrontiers();
+	frontierRegions_ = computeFrontierRegions(frontierCellGrid_, map.info.width, map.info.height, 
+        map.info.resolution, map.info.origin.position.x, map.info.origin.position.y);
 
     nav_msgs::msg::OccupancyGrid f_map = map;
     f_map.data = frontierCellGrid_;
     frontier_map_publisher_->publish(f_map);
+
+    publishFrontiers();
 
     // Create and init message
     geometry_msgs::msg::PoseStamped goal_pose;
@@ -94,7 +95,6 @@ void FrontierExplorer::publishFrontiers()
         p.z = 0.3;
         sphere_list->points.push_back(p);
     }
-
     marker_publisher_->publish(*sphere_list);
 }
 

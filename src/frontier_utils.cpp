@@ -143,7 +143,8 @@ vector<cell> computeFrontierCellGrid(vector<cell> occupancyGrid, int width, int 
  * @param	height				the grid height
  * @return 						a list of frontier regions extracted
  */
-vector<frontierRegion> computeFrontierRegions(vector<cell> frontierCellGrid, int width, int height){
+vector<frontierRegion> computeFrontierRegions(vector<cell> frontierCellGrid, int width, int height,
+    float resolution, float origin_x, float origin_y){
 
     vector<frontierRegion> output;
     
@@ -205,7 +206,15 @@ vector<frontierRegion> computeFrontierRegions(vector<cell> frontierCellGrid, int
                 // Average Summed Cell Coordinates
                 newRegion.x /= newRegion.size;
                 newRegion.y /= newRegion.size;
-                
+
+                // Convert units from pixel to meter
+                newRegion.x *= resolution;
+                newRegion.y *= resolution;
+
+                // Translate to origin of map
+                newRegion.x += origin_x;
+                newRegion.y += origin_y;
+
                 // Push the New Region into the Output Vector
                 output.push_back(newRegion);
                 
