@@ -1,5 +1,8 @@
 #include "frontier_exploration/frontier_utils.hpp"
 
+#include <cmath>
+#include <algorithm>
+
 using namespace std;
 
 /**
@@ -55,10 +58,8 @@ void printFrontierRegions(std::vector<frontierRegion> frontierRegions ){
  */
 vector<pair<int,int>> getNeighbours(int row, int col, int minRow, int minCol, int maxRow, int maxCol, vector<int> dr, vector<int> dc, int numberOfConnections){
 
-    vector<pair<int,int>> output;	
-    
+    vector<pair<int,int>> output;
     int neighbourRow, neighbourCol;
-    
     
     for (int i = 0; i < numberOfConnections; i++){
         
@@ -71,9 +72,7 @@ vector<pair<int,int>> getNeighbours(int row, int col, int minRow, int minCol, in
         output.push_back(make_pair(neighbourRow,neighbourCol));
         
     }
-    
     return output;
-
 }
 
 /**
@@ -93,7 +92,6 @@ bool hasCellValue(vector<cell> grid, int width, vector<pair<int,int>> cells, int
         if (grid[cells[i].first*width + cells[i].second] == value) return 1;
         
     }
-    
     return 0;
 }
 
@@ -101,36 +99,31 @@ bool hasCellValue(vector<cell> grid, int width, vector<pair<int,int>> cells, int
  * This function detects frontier edge cells and constructs a 
  * binary grid of the detected cells
  *
- * @param	occupancyGrid		the input vector representing occupancy grid contents
- * @param	width				the grid width
- * @param	height				the grid height
- * @return 						a binary grid of the map's frontier edge cells
+ * @param   occupancyGrid   the input vector representing occupancy grid contents
+ * @param   width           the grid width
+ * @param   height          the grid height
+ * @return                  a binary grid of the map's frontier edge cells
  */
 vector<cell> computeFrontierCellGrid(vector<cell> occupancyGrid, int width, int height){
-    
+    const uint8_t frontier = 1, not_frontier = 0;
     vector<cell> output;
     vector<pair<int,int>> neighbours;
-
     
     for (int i = 0; i < height; i++){
         for(int j = 0; j < width; j++){
         
             if (occupancyGrid[i*width + j] == 0){
-                    
                 neighbours = getNeighbours(i, j, 0, 0, height, width, dr_4, dc_4, 4);
                 if (hasCellValue(occupancyGrid, width, neighbours, -1)){
-                    output.push_back(1);
+                    output.push_back(frontier);
                 } else {
-                    output.push_back(0);	
+                    output.push_back(not_frontier);	
                 }
             } else {
-                
-                output.push_back(0);
-                
+                output.push_back(not_frontier);
             }
         }
     }
-    
     return output;
 }
 
@@ -144,7 +137,7 @@ vector<cell> computeFrontierCellGrid(vector<cell> occupancyGrid, int width, int 
  * @return 						a list of frontier regions extracted
  */
 vector<frontierRegion> computeFrontierRegions(vector<cell> frontierCellGrid, int width, int height,
-    float resolution, float origin_x, float origin_y){
+    float resolution, float origin_x, float origin_y, int region_size_thresh){
 
     vector<frontierRegion> output;
     
@@ -196,12 +189,11 @@ vector<frontierRegion> computeFrontierRegions(vector<cell> frontierCellGrid, int
                         visited[neighbour_i*width + neighbour_j] = 1;	
                     }
                 }
-                
                 // Remove the First Element of the Queue
                 cellQueue.pop();
             }
             
-            if (newRegion.size != 0){
+            if (newRegion.size >= region_size_thresh){
                 
                 // Average Summed Cell Coordinates
                 newRegion.x /= newRegion.size;
@@ -222,11 +214,37 @@ vector<frontierRegion> computeFrontierRegions(vector<cell> frontierCellGrid, int
                 newRegion.size = 0;
                 newRegion.x = 0;
                 newRegion.y = 0;
-                
             }
-
         }
     }
-    
     return output;
+}
+
+/**
+ * @brief Ranks the frontiers based on criteria. Returns the desired ranked result.
+ * 
+ * @param frontier_regions  List of regions
+ * @param rank              The rank of frontier to return from ordered list
+ *                          Default is 0 for best result.
+ * @return frontierRegion   Best region, or region specifie by rank
+ */
+frontierRegion selectFrontier(std::vector<frontierRegion> frontier_regions, int rank,
+    float robot_pose_x, float robot_pose_y){
+
+    float dist;
+    float alpha = 0.5;
+    for(auto reg : frontier_regions) {
+        // Euclidean dist
+        dist = sqrt(pow((robot_pose_x - reg.x), 2.0) + pow((robot_pose_y - reg.y), 2.0));
+        reg.score = dist*alpha + reg.size*(1-alpha);
+    }
+
+    // Sort vec in place
+    sort(frontier_regions.begin(), frontier_regions.end(), compareByScore);
+
+    return frontier_regions[rank];
+}
+
+bool compareByScore(const frontierRegion &a, const frontierRegion &b){
+    return a.score < b.score;
 }

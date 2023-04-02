@@ -33,12 +33,15 @@ class FrontierExplorer : public rclcpp::Node
         FrontierExplorer();
 
     private:
-        std::vector<cell> frontierCellGrid_;
-        std::vector<frontierRegion> frontierRegions_;
+        int region_size_thresh_ {1};
+        float robot_width_ {0.5};
+        std::string occupancy_map_topic_ {"map"}; //"global_costmap/costmap"
+        std::string map_frame_ {"map"};
 
         std::mutex mutex_;
 
-        std::string map_frame_ {"map"};
+        std::vector<cell> frontierCellGrid_;
+        std::vector<frontierRegion> frontierRegions_;
 
         nav_msgs::msg::OccupancyGrid map_;
 
@@ -53,8 +56,6 @@ class FrontierExplorer : public rclcpp::Node
             std::shared_ptr<frontier_interfaces::srv::FrontierGoal::Response> response);
 
         void publishFrontiers();
-
-        void publishFrontierMap();
 };
 
 #endif
