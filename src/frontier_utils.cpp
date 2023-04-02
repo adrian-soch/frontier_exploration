@@ -232,7 +232,7 @@ frontierRegion selectFrontier(std::vector<frontierRegion> frontier_regions, int 
     float robot_pose_x, float robot_pose_y){
 
     float dist;
-    float alpha = 0.5;
+    float alpha = 0.69;
     for(auto reg : frontier_regions) {
         // Euclidean dist
         dist = sqrt(pow((robot_pose_x - reg.x), 2.0) + pow((robot_pose_y - reg.y), 2.0));
@@ -242,7 +242,7 @@ frontierRegion selectFrontier(std::vector<frontierRegion> frontier_regions, int 
     // Sort vec in place
     sort(frontier_regions.begin(), frontier_regions.end(), compareByScore);
 
-    return frontier_regions[rank];
+    return frontier_regions.at(rank);
 }
 
 bool compareByScore(const frontierRegion &a, const frontierRegion &b){

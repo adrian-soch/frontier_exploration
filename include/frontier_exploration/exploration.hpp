@@ -22,7 +22,13 @@
 #include <nav_msgs/msg/occupancy_grid.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/point.hpp>
+#include <geometry_msgs/msg/transform_stamped.hpp>
 #include <visualization_msgs/msg/marker.hpp>
+
+#include "tf2/exceptions.h"
+#include "tf2_ros/transform_listener.h"
+#include "tf2_ros/buffer.h"
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -35,8 +41,12 @@ class FrontierExplorer : public rclcpp::Node
     private:
         int region_size_thresh_ {1};
         float robot_width_ {0.5};
+
         std::string occupancy_map_topic_ {"map"}; //"global_costmap/costmap"
+        
         std::string map_frame_ {"map"};
+        std::string base_frame_ {"base_link"};
+        std::string odom_frame_ {"odom"};
 
         std::mutex mutex_;
 
@@ -56,6 +66,9 @@ class FrontierExplorer : public rclcpp::Node
             std::shared_ptr<frontier_interfaces::srv::FrontierGoal::Response> response);
 
         void publishFrontiers();
+
+        std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
+        std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
 };
 
 #endif

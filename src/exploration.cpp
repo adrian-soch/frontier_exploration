@@ -31,13 +31,17 @@ FrontierExplorer::FrontierExplorer()
 
     marker_publisher_ = this->create_publisher<visualization_msgs::msg::Marker>("f_markers", 1);
     frontier_map_publisher_ = this->create_publisher<nav_msgs::msg::OccupancyGrid>("f_map", 1);
+
+    //tf listner 
+    tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
+    tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 }
 
 void FrontierExplorer::map_callback(const nav_msgs::msg::OccupancyGrid::SharedPtr recent_map)
 {
-    auto width = recent_map->info.width;
-    auto height = recent_map->info.height;
-    RCLCPP_INFO(this->get_logger(),"Map recieved w: %d h: %d.", width, height);
+    // auto width = recent_map->info.width;
+    // auto height = recent_map->info.height;
+    // RCLCPP_INFO(this->get_logger(),"Map recieved w: %d h: %d.", width, height);
 
     std::lock_guard<std::mutex> guard(mutex_);
     map_ = *recent_map;
@@ -53,10 +57,16 @@ void FrontierExplorer::get_frontiers(const std::shared_ptr<frontier_interfaces::
         nav_msgs::msg::OccupancyGrid map = map_;
     lck.unlock();
 
+    // Pre-process the grid cell map
+    /**
+     * @todo OpenCV morphological function to close holes and reduce "noise" 
+     */
+
+    // Compute frontier grid cell map
     frontierCellGrid_.clear();
 	frontierCellGrid_ = computeFrontierCellGrid(map.data, map.info.width, map.info.height);
 	
-	// 2. Compute the Frontier Regions
+	// Compute the Frontier Regions
 	frontierRegions_.clear();
 	frontierRegions_ = computeFrontierRegions(frontierCellGrid_, map.info.width, map.info.height, 
         map.info.resolution, map.info.origin.position.x, map.info.origin.position.y, region_size_thresh_);
@@ -70,12 +80,19 @@ void FrontierExplorer::get_frontiers(const std::shared_ptr<frontier_interfaces::
 
     publishFrontiers();
 
-    /**
-     * @todo Get robot pose and pass to `selectFrontier`
-     * 
-     */
+    // Get robot position
+    geometry_msgs::msg::TransformStamped stransform;
+    try{
+        stransform = tf_buffer_->lookupTransform(odom_frame_, base_frame_,
+                                                    tf2::TimePointZero, tf2::durationFromSec(3));
+    }
+    catch (const tf2::TransformException &ex){
+        RCLCPP_ERROR(this->get_logger(), "%s", ex.what());
+    }
+    
+    // Find best goal based on position and size
     frontierRegion goal = selectFrontier(frontierRegions_, 0,
-    0.0 ,0.0);
+    stransform.transform.translation.x , stransform.transform.translation.y);
 
     // Create and init message
     geometry_msgs::msg::PoseStamped goal_pose;
@@ -84,7 +101,8 @@ void FrontierExplorer::get_frontiers(const std::shared_ptr<frontier_interfaces::
     goal_pose.pose.position.y = goal.y;
     
     // Set the response
-    response->goal_pose;
+    response->goal_pose = goal_pose;
+
     RCLCPP_INFO(this->get_logger(), "Sending goal x: %f y: %f.",
         goal_pose.pose.position.x, goal_pose.pose.position.y);
 }

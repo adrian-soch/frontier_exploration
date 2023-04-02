@@ -16,9 +16,12 @@ find_package(std_msgs REQUIRED)
 find_package(action_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(frontier_interfaces REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
 
 add_executable(exploration_node src/exploration.cpp src/frontier_utils.cpp)
-ament_target_dependencies(exploration_node rclcpp nav_msgs geometry_msgs visualization_msgs frontier_interfaces)
+ament_target_dependencies(exploration_node rclcpp nav_msgs geometry_msgs visualization_msgs frontier_interfaces tf2 tf2_ros tf2_geometry_msgs)
 
 target_include_directories(exploration_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
