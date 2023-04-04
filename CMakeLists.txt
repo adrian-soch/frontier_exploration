@@ -19,16 +19,31 @@ find_package(frontier_interfaces REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
+find_package(OpenCV REQUIRED)
 
+# Exploration
+#######################################################
+#######################################################
 add_executable(exploration_node src/exploration.cpp src/frontier_utils.cpp)
 ament_target_dependencies(exploration_node rclcpp nav_msgs geometry_msgs visualization_msgs frontier_interfaces tf2 tf2_ros tf2_geometry_msgs)
-
 target_include_directories(exploration_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
+# Data Collector
+#######################################################
+#######################################################
+add_executable(collection_node src/training_data_collector.cpp)
+ament_target_dependencies(collection_node rclcpp nav_msgs OpenCV)
+target_include_directories(collection_node PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+
+
+
 install(TARGETS
   exploration_node
+  collection_node
   DESTINATION lib/${PROJECT_NAME})
 
 # Install launch files.
