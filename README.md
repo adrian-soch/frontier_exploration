@@ -48,3 +48,8 @@ ros2 launch frontier_exploration exploration.launch.py
 # Start the nav_to_goal node
 ros2 run frontier_exploration nav_to_goal.py
 ```
+
+### Training Data COllection
+
+1. Launch a simalation or real robot that publishes occupancy grid maps to the `/map`  topic.
+2. Then `ros2 run frontier_exploration collection_node --ros-args -p filename:="/workspace/src/text.png"`
