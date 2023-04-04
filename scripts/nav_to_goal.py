@@ -89,6 +89,7 @@ class FrontierExplorer(Node):
         reachable = False
         while not reachable:
             goal = self.send_request(rank)
+            self.goal_pose = goal
             self.goal_pose.header.frame_id = 'map'
             self.goal_pose.header.stamp = self.navigator.get_clock().now().to_msg()
 
@@ -108,7 +109,6 @@ class FrontierExplorer(Node):
         rclpy.spin_until_future_complete(self, self.future)
         res = self.future.result()
         return res.goal_pose
-        # return self.future.result()
 
     def get_current_pose(self) -> PoseStamped:
         try:
@@ -124,6 +124,8 @@ class FrontierExplorer(Node):
         p = PoseStamped()
         p.pose.position.x = t.transform.translation.x
         p.pose.position.y = t.transform.translation.y
+        p.header.stamp = self.navigator.get_clock().now().to_msg()
+        p.header.frame_id = 'odom'
         return p
     
     def set_goal_heading(self):
