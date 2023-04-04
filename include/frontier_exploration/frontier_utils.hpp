@@ -13,7 +13,7 @@ struct frontierRegion {
     float score;
 };
 
-using cell = signed char;
+using cell = int8_t;
 
 const std::vector<int> dr_4 = {-1, 0, 0, 1};
 const std::vector<int> dc_4 = {0, -1, 1, 0};
@@ -34,5 +34,7 @@ frontierRegion selectFrontier(std::vector<frontierRegion>, int rank,
     float robot_pose_x, float robot_pose_y);
 
 bool compareByScore(const frontierRegion &a, const frontierRegion &b);
+
+void gridmap2file(std::string fullpath, std::vector<cell> &map, int width, int height);
 
 #endif

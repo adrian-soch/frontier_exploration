@@ -2,6 +2,8 @@
 
 #include <cmath>
 #include <algorithm>
+#include <fstream>
+#include <iterator>
 
 using namespace std;
 
@@ -228,7 +230,7 @@ vector<frontierRegion> computeFrontierRegions(vector<cell> frontierCellGrid, int
  *                          Default is 0 for best result.
  * @return frontierRegion   Best region, or region specifie by rank
  */
-frontierRegion selectFrontier(std::vector<frontierRegion> frontier_regions, int rank,
+frontierRegion selectFrontier(vector<frontierRegion> frontier_regions, int rank,
     float robot_pose_x, float robot_pose_y){
 
     float dist;
@@ -247,4 +249,28 @@ frontierRegion selectFrontier(std::vector<frontierRegion> frontier_regions, int 
 
 bool compareByScore(const frontierRegion &a, const frontierRegion &b){
     return a.score < b.score;
+}
+
+/**
+ * @brief Save map to txt file
+ * 
+ * @param fullpath Full file path and name ex. "~/dev/map.txt"
+ * @param map      The map as a vector<cell> type
+ * @param width    Width of the map
+ */
+// template<typename T>
+void gridmap2file(string fullpath, vector<int8_t> &map, int width, int height)
+{
+    std::ofstream fout(fullpath);
+    fout << width << " " << height << "\n";
+
+    int count = 0;
+    for(auto x : map){
+        if(count == width){
+            fout << "\n";
+            count = 0;
+        }
+        fout << int(x) << " ";
+        ++count;
+    }
 }

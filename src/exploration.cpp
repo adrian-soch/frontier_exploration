@@ -5,10 +5,6 @@
  * @version 0.1
  * @date 2023-03-11
  * 
- * @todo
- *      - serve goal requests from navigation node
- *      - implement frontier based exploration algorithm
- * 
  * @copyright Copyright (c) 2023
  *
  */
@@ -59,12 +55,16 @@ void FrontierExplorer::get_frontiers(const std::shared_ptr<frontier_interfaces::
 
     // Pre-process the grid cell map
     /**
-     * @todo OpenCV morphological function to close holes and reduce "noise" 
+     * @todo reduce "noise" in map
      */
 
     // Compute frontier grid cell map
     frontierCellGrid_.clear();
 	frontierCellGrid_ = computeFrontierCellGrid(map.data, map.info.width, map.info.height);
+
+    // Print maps to txt for debugging
+    gridmap2file("/workspace/src/frontier_exploration/raw.txt", map.data, map.info.width, map.info.height);
+    gridmap2file("/workspace/src/frontier_exploration/frontier.txt", frontierCellGrid_, map.info.width, map.info.height); 
 	
 	// Compute the Frontier Regions
 	frontierRegions_.clear();
