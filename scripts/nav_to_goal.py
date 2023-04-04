@@ -50,27 +50,26 @@ class FrontierExplorer(Node):
                 exit(-1)
             
             # Go to the goal pose
+
+            # TODO fix this error `[planner_server]: Could not transform the start or goal pose in the costmap frame`
             self.navigator.goToPose(self.goal_pose)
             
             # Keep doing stuff as long as the robot is moving towards the goal
             i = 0
             while not self.navigator.isNavComplete():
-                
+
+                i = i + 1
                 feedback = self.navigator.getFeedback()
-
-                if feedback:
-                    # Set goal pose heading to robots current heading once it is close]
-                    # This avoids unecessary rotation once reaching the goal position
-                    # if feedback.distance_remaining < self.DIST_THRESH_FOR_HEADING_CALC:
-                    #     self.get_logger().info('Setting new heading')
-                    #     self.set_goal_heading()
-                    #     self.navigator.goToPose(self.goal_pose)
-
-                    # DEBUG info
-                    if i % 15 == 0:
-                        print('Distance remaining: ' + '{:.2f}'.format(
-                            feedback.distance_remaining) + ' meters.')
-                    i += 1
+                if feedback and i % 15 == 0:
+                    print('Distance remaining: ' + '{:.2f}'.format(
+                        feedback.distance_remaining) + ' meters.')
+                
+                # Set goal pose heading to robots current heading once it is close]
+                # This avoids unecessary rotation once reaching the goal position
+                # if feedback.distance_remaining < self.DIST_THRESH_FOR_HEADING_CALC:
+                #     self.get_logger().info('Setting new heading')
+                #     self.set_goal_heading()
+                #     self.navigator.goToPose(self.goal_pose)
             
                 # Some navigation timeout to demo cancellation
                 if Duration.from_msg(feedback.navigation_time) > Duration(seconds=self.NAV_TO_GOAL_TIMEOUT_SEC):
