@@ -238,7 +238,7 @@ frontierRegion selectFrontier(vector<frontierRegion> frontier_regions, int rank,
     for(auto reg : frontier_regions) {
         // Euclidean dist
         dist = sqrt(pow((robot_pose_x - reg.x), 2.0) + pow((robot_pose_y - reg.y), 2.0));
-        reg.score = dist*alpha + reg.size*(1-alpha);
+        reg.score = (1.0/dist)*alpha + reg.size*(1-alpha);
     }
 
     // Sort vec in place
