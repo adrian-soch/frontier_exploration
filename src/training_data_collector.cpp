@@ -63,35 +63,22 @@ public:
     void callback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg) {
 
         bool moved_enough = getDistTravelled(0.1);
-
         if(!moved_enough) {
             return;
         }
 
         std::vector<cell> processed = preprocessMap(msg->data, msg->info.width, msg->info.height);
 
-
         // Convert the occupancy grid message to an OpenCV Mat
-        cv::Mat occupancy_grid(msg->info.height, msg->info.width, CV_8SC1, (void*) msg->data.data());
-        cv::Mat occupancy_grid2(msg->info.height, msg->info.width, CV_8SC1, (void*) processed.data());
+        cv::Mat occupancy_grid(msg->info.height, msg->info.width, CV_8SC1, (void*) processed.data());
 
         cv::Mat grayscale_image(occupancy_grid.size(), CV_8UC1);
         grayscale_image.setTo(255);  // Set all pixels to white
         grayscale_image.setTo(128, occupancy_grid == -1);  // Set pixels with value -1 to grey
         grayscale_image.setTo(0, occupancy_grid >= 1);  // 
 
-        cv::Mat grayscale_image2(occupancy_grid2.size(), CV_8UC1);
-        grayscale_image2.setTo(255);  // Set all pixels to white
-        grayscale_image2.setTo(128, occupancy_grid2 == -1);  // Set pixels with value -1 to grey
-        grayscale_image2.setTo(0, occupancy_grid2 >= 1);  // 
-
         // Create file name
         std::string fullpath = path_ + "/" + std::to_string(saved_image_count) + "_" +
-            std::to_string(msg->info.height) + "_" +
-            std::to_string(msg->info.width) + "_" + 
-            std::to_string(msg->info.resolution) + ".png";
-
-        std::string fullpath2 = path_ + "/" + "pre_" + std::to_string(saved_image_count) + "_" +
             std::to_string(msg->info.height) + "_" +
             std::to_string(msg->info.width) + "_" + 
             std::to_string(msg->info.resolution) + ".png";
@@ -99,30 +86,27 @@ public:
 
         // Save the grayscale image to a file
         cv::imwrite(fullpath, grayscale_image);
-        cv::imwrite(fullpath2, grayscale_image2);
         RCLCPP_INFO(this->get_logger(), "Saving Image %s", fullpath.c_str());
     }
 
     bool getDistTravelled(double thresh) {
         geometry_msgs::msg::TransformStamped stransform;
-        try
-        {
+        try {
             stransform = tf_buffer_->lookupTransform(odom_frame_, base_frame_,
-                                                        tf2::TimePointZero, tf2::durationFromSec(3));
+                tf2::TimePointZero, tf2::durationFromSec(3));
         }
-        catch (const tf2::TransformException &ex)
-        {
+        catch (const tf2::TransformException &ex) {
             RCLCPP_ERROR(this->get_logger(), "%s", ex.what());
         }
         
         Eigen::Affine3d T; //
         T = tf2::transformToEigen(stransform);
 
-        //2. compute relative transform
+        // Compute relative transform
         Eigen::Affine3d movement; //
         movement = last_pose_.inverse() * T;
         
-        //3. threshold for enough motion
+        // Threshold for enough motion
         double transl = movement.translation().norm();
         RCLCPP_INFO(this->get_logger(), "dist: %f", transl);
 
@@ -130,7 +114,7 @@ public:
             return false;
         }
 
-        //6. set new last pose
+        // Set new last pose
         last_pose_ = T;
 
         return true;
