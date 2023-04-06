@@ -30,7 +30,7 @@ void printGrid(vector<int> inputVector, int width, int height){
  *
  * @param	frontierRegions		the input list of regions
  */
-void printFrontierRegions(std::vector<frontierRegion> frontierRegions ){
+void printFrontierRegions(vector<frontierRegion> frontierRegions ){
     
     cout << frontierRegions.size() << endl;
     
@@ -234,7 +234,7 @@ frontierRegion selectFrontier(vector<frontierRegion> frontier_regions, int rank,
     float robot_pose_x, float robot_pose_y){
 
     float dist;
-    float alpha = 0.69;
+    float alpha = 0.95;
     for(auto reg : frontier_regions) {
         // Euclidean dist
         dist = sqrt(pow((robot_pose_x - reg.x), 2.0) + pow((robot_pose_y - reg.y), 2.0));
@@ -258,10 +258,9 @@ bool compareByScore(const frontierRegion &a, const frontierRegion &b){
  * @param map      The map as a vector<cell> type
  * @param width    Width of the map
  */
-// template<typename T>
-void gridmap2file(string fullpath, vector<int8_t> &map, int width, int height)
+void gridmap2file(string fullpath, vector<cell> &map, int width, int height)
 {
-    std::ofstream fout(fullpath);
+    ofstream fout(fullpath);
     fout << width << " " << height << "\n";
 
     int count = 0;
@@ -273,4 +272,54 @@ void gridmap2file(string fullpath, vector<int8_t> &map, int width, int height)
         fout << int(x) << " ";
         ++count;
     }
+}
+
+/**
+ * This function preprocesses the input occupancy map
+ *
+ * @param	occupancyGrid		the input vector representing occupancy grid contents
+ * @param	width				the grid width
+ * @param	height				the grid height
+ * @return 						a preprocessed occupancy map 
+ */
+vector<cell> preprocessMap(vector<cell> &occupancyGrid, int width, int height){
+    
+    vector<cell> output;
+    
+    vector<pair<int,int>> neighbours;
+    cell unkn, free;
+    
+    for (int i = 0; i < height; i++){
+        for(int j = 0; j < width; j++){
+            
+            
+            if (occupancyGrid[i*width + j] == 100){
+                
+                output.push_back(100);
+                
+            } else {
+                
+                unkn = 0;
+                free = 0;
+                
+                neighbours = getNeighbours(i, j, 0, 0, height, width, dr_8, dc_8, 8);
+                
+                for (size_t k = 0; k < neighbours.size(); k++){
+                
+                    if (occupancyGrid[neighbours[k].first*width + neighbours[k].second] == 0){
+                        free++;
+                    } else if(occupancyGrid[neighbours[k].first*width + neighbours[k].second] == -1){
+                        unkn++;
+                    }
+                }
+                
+                if (unkn >= free){
+                    output.push_back(-1);
+                } else {
+                    output.push_back(0);
+                }			
+            }		
+        }
+    }
+    return output;
 }

@@ -10,9 +10,15 @@ def generate_launch_description():
             # prefix='valgrind --leak-check=yes ', # Uncomment to run valgrind. Requires debug build
             output='screen',
             parameters=[
-                {"region_size_thresh_": 12}, # number of points
+                {"region_size_thresh_": 16}, # number of points
                 {"robot_width_": 0.5}, # meters
                 {"occupancy_map_topic_": "map"} # occupany grid map topic
             ]
-        )
+        ),
+
+        Node(
+            package='frontier_exploration',
+            executable='nav_to_goal.py',
+            name='frontier_explorer',
+            output='screen')
      ])

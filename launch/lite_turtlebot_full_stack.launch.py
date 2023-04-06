@@ -304,6 +304,6 @@ def generate_launch_description():
     ld.add_action(turtlebot4_node)
     ld.add_action(navigation)
     ld.add_action(rplidar_stf)
-    # ld.add_action(oakd_pro_stf)
-    # ld.add_action(oakd_lite_stf)
+    ld.add_action(oakd_pro_stf)
+    ld.add_action(oakd_lite_stf)
     return ld

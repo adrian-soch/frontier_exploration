@@ -18,6 +18,7 @@ find_package(visualization_msgs REQUIRED)
 find_package(frontier_interfaces REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
+find_package(tf2_eigen REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(OpenCV REQUIRED)
 
@@ -33,8 +34,8 @@ target_include_directories(exploration_node PUBLIC
 # Data Collector
 #######################################################
 #######################################################
-add_executable(collection_node src/training_data_collector.cpp)
-ament_target_dependencies(collection_node rclcpp nav_msgs OpenCV)
+add_executable(collection_node src/training_data_collector.cpp src/frontier_utils.cpp)
+ament_target_dependencies(collection_node rclcpp nav_msgs OpenCV tf2_eigen tf2 tf2_ros tf2_geometry_msgs)
 target_include_directories(collection_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
@@ -49,6 +50,7 @@ install(TARGETS
 # Install launch files.
 install(DIRECTORY
   launch
+  config
   DESTINATION share/${PROJECT_NAME}/
 )
 
