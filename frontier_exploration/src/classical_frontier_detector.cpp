@@ -1,5 +1,5 @@
 /**
- * @file exploration.cpp
+ * @file classical_frontier_detection.cpp
  * @author 
  * @brief Implementation of frontier-based exploration
  * @version 0.1
@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2023
  *
  */
-#include "frontier_exploration/exploration.hpp"
+#include "frontier_exploration/classical_frontier_detector.hpp"
 
 FrontierExplorer::FrontierExplorer()
 : Node("frontier_explorer")

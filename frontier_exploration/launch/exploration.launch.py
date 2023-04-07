@@ -5,8 +5,8 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='frontier_exploration',
-            executable='exploration_node', # same as cmake
-            name='frontier_exploration_node',
+            executable='classical_frontier_detector', # same as cmake
+            name='classical_frontier_detector',
             # prefix='valgrind --leak-check=yes ', # Uncomment to run valgrind. Requires debug build
             output='screen',
             parameters=[
@@ -19,6 +19,6 @@ def generate_launch_description():
         Node(
             package='frontier_exploration',
             executable='frontier_exploration_node.py',
-            name='frontier_explorer',
+            name='frontier_exploration_node',
             output='screen')
      ])

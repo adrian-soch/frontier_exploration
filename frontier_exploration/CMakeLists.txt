@@ -25,9 +25,9 @@ find_package(OpenCV REQUIRED)
 # Exploration
 #######################################################
 #######################################################
-add_executable(exploration_node src/exploration.cpp src/frontier_utils.cpp)
-ament_target_dependencies(exploration_node rclcpp nav_msgs geometry_msgs visualization_msgs frontier_interfaces tf2 tf2_ros tf2_geometry_msgs)
-target_include_directories(exploration_node PUBLIC
+add_executable(classical_frontier_detector src/classical_frontier_detector.cpp src/frontier_utils.cpp)
+ament_target_dependencies(classical_frontier_detector rclcpp nav_msgs geometry_msgs visualization_msgs frontier_interfaces tf2 tf2_ros tf2_geometry_msgs)
+target_include_directories(classical_frontier_detector PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
@@ -43,7 +43,7 @@ target_include_directories(collection_node PUBLIC
 
 
 install(TARGETS
-  exploration_node
+  classical_frontier_detector
   collection_node
   DESTINATION lib/${PROJECT_NAME})
 

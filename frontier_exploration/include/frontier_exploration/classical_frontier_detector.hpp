@@ -1,5 +1,5 @@
 /**
- * @file exploration.hpp
+ * @file classical_frontier_detection.hpp
  * @author
  * @brief 
  * @version 0.1
@@ -9,8 +9,8 @@
  * 
  */
 
-#ifndef FRONTIER_EXPLORER
-#define FRONTIER_EXPLORER
+#ifndef CLASSICAL_FRONTIER_DETECTOR_
+#define CLASSICAL_FRONTIER_DETECTOR_
 
 #include <memory>
 #include <mutex>
