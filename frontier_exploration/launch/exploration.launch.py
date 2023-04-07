@@ -18,7 +18,7 @@ def generate_launch_description():
 
         Node(
             package='frontier_exploration',
-            executable='nav_to_goal.py',
+            executable='frontier_exploration_node.py',
             name='frontier_explorer',
             output='screen')
      ])

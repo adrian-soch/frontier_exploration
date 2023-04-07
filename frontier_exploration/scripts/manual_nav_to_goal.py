@@ -6,7 +6,7 @@ from geometry_msgs.msg import PoseStamped
 from rclpy.duration import Duration
 import rclpy
  
-from robot_navigator import BasicNavigator, NavigationResult
+from frontier_exploration.robot_navigator import BasicNavigator, NavigationResult
  
 '''
 Navigates a robot from an initial pose to a goal pose.

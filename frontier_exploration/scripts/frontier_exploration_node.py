@@ -1,6 +1,11 @@
 #! /usr/bin/env python3
 
-#Ref: https://automaticaddison.com/how-to-send-goals-to-the-ros-2-navigation-stack-nav2/
+'''
+This node is for autonomous exploration. It requests frontier regions from a service and
+sends the goal points to the nav2 stack until the the entire environment has been explored.
+
+Reference code: https://automaticaddison.com/how-to-send-goals-to-the-ros-2-navigation-stack-nav2/
+'''
  
 import rclpy
 from rclpy.node import Node
@@ -12,7 +17,7 @@ from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 
 from frontier_interfaces.srv import FrontierGoal
-from robot_navigator import BasicNavigator, NavigationResult
+from frontier_exploration.robot_navigator import BasicNavigator, NavigationResult
  
 class FrontierExplorer(Node):
 

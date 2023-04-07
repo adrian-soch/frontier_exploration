@@ -59,8 +59,7 @@ ament_python_install_package(${PROJECT_NAME})
  
 # Install Python executables
 install(PROGRAMS
-  scripts/nav_to_goal.py
-  scripts/robot_navigator.py
+  scripts/frontier_exploration_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
