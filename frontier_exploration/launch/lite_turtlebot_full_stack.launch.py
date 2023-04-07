@@ -101,6 +101,10 @@ def generate_launch_description():
     pkg_ros_ign_gazebo = get_package_share_directory(
         'ros_ign_gazebo')
 
+    #pkg_share = get_package_share_directory('frontier_exploration')
+    #world_file_name = 'cafe.world'
+    #world_path = os.path.join(pkg_share, 'worlds', world_file_name)
+
     # Set ignition resource path
     ign_resource_path = SetEnvironmentVariable(
         name='IGN_GAZEBO_RESOURCE_PATH',
@@ -171,6 +175,8 @@ def generate_launch_description():
     )
 
     # Robot description
+    x_rob = OffsetParser(x, 1)
+    y_rob = OffsetParser(y, -1)
     robot_description = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([robot_description_launch]),
         launch_arguments=[('model', LaunchConfiguration('model')),
@@ -191,8 +197,8 @@ def generate_launch_description():
         executable='create',
         arguments=[
             '-name', LaunchConfiguration('robot_name'),
-            '-x 60.0',
-            '-y 60.0',
+            '-x', x_rob,
+            '-y', y_rob,
             '-z', z,
             '-Y', yaw,
             '-topic', 'robot_description'],
