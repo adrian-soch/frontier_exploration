@@ -60,6 +60,7 @@ ament_python_install_package(${PROJECT_NAME})
 # Install Python executables
 install(PROGRAMS
   scripts/frontier_exploration_node.py
+  scripts/learned_frontier_detector.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
