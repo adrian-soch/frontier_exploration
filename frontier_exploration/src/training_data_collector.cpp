@@ -62,7 +62,7 @@ public:
 
     void callback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg) {
 
-        bool moved_enough = getDistTravelled(1.6); // In meters
+        bool moved_enough = getDistTravelled(2.0); // In meters
         if(!moved_enough) {
             return;
         }

@@ -65,7 +65,7 @@ ARGUMENTS = [
     DeclareLaunchArgument('use_sim_time', default_value='true',
                           choices=['true', 'false'],
                           description='use_sim_time'),
-    DeclareLaunchArgument('world', default_value='depot',
+    DeclareLaunchArgument('world', default_value='depot2',
                           description='Ignition World'),
     DeclareLaunchArgument('model', default_value='lite',
                           choices=['standard', 'lite'],
@@ -160,6 +160,7 @@ def generate_launch_description():
         launch_arguments=[
             ('ign_args', [
                 LaunchConfiguration('world'), '.sdf',
+                # ' /workspace/tugbot_warehouse.sdf ',
                 ' -v 4 -r ',
                 ' --gui-config ', PathJoinSubstitution(
                     [pkg_turtlebot4_ignition_bringup,
@@ -177,7 +178,7 @@ def generate_launch_description():
     )
 
     # Dock description
-    x_dock = OffsetParser(x, 0.157)
+    x_dock = OffsetParser(x, 0.5)
     yaw_dock = OffsetParser(yaw, 3.1416)
     dock_description = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([dock_description_launch]),
@@ -190,8 +191,8 @@ def generate_launch_description():
         executable='create',
         arguments=[
             '-name', LaunchConfiguration('robot_name'),
-            '-x', x,
-            '-y', y,
+            '-x 60.0',
+            '-y 60.0',
             '-z', z,
             '-Y', yaw,
             '-topic', 'robot_description'],

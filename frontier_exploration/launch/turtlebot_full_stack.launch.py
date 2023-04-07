@@ -53,7 +53,7 @@ ARGUMENTS = [
                           choices=['true', 'false'],
                           description='Start rviz.'),
     DeclareLaunchArgument('slam', default_value='sync',
-                          choices=['off', 'sync', 'async'],
+                          choices=['off', 'sync', 'custom'],
                           description='Whether to run a SLAM'),
     DeclareLaunchArgument('localization', default_value='false',
                           choices=['true', 'false'],
@@ -77,6 +77,8 @@ ARGUMENTS = [
 def generate_launch_description():
 
     # Directories
+    pkg_fe = get_package_share_directory(
+        'frontier_exploration')
     pkg_turtlebot4_ignition_bringup = get_package_share_directory(
         'turtlebot4_ignition_bringup')
     pkg_turtlebot4_ignition_gui_plugins = get_package_share_directory(
@@ -122,8 +124,10 @@ def generate_launch_description():
         [pkg_turtlebot4_ignition_bringup, 'launch', 'ros_ign_bridge.launch.py'])
     rviz_launch = PathJoinSubstitution(
         [pkg_turtlebot4_viz, 'launch', 'view_robot.launch.py'])
+    # nav_launch = PathJoinSubstitution(
+    #     [pkg_turtlebot4_navigation, 'launch', 'nav_bringup.launch.py'])
     nav_launch = PathJoinSubstitution(
-        [pkg_turtlebot4_navigation, 'launch', 'nav_bringup.launch.py'])
+        [pkg_fe, 'launch', 'custom_nav_bringup.launch.py'])
     node_launch = PathJoinSubstitution(
         [pkg_turtlebot4_ignition_bringup, 'launch', 'turtlebot4_nodes.launch.py'])
     create3_nodes_launch = PathJoinSubstitution(
