@@ -7,7 +7,10 @@ def generate_launch_description():
             package='frontier_exploration',
             executable='learned_frontier_detector.py',
             name='learned_frontier_detector',
-            output='screen'
+            output='screen',
+            parameters=[
+                {"weights_path": "/workspace/install/frontier_exploration/lib/python3.8/site-packages/frontier_exploration/weights/yolov5n_frontier_64.pt"}
+            ]
         ),
 
         Node(
