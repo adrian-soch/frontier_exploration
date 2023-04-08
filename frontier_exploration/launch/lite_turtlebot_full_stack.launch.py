@@ -163,8 +163,8 @@ def generate_launch_description():
         PythonLaunchDescriptionSource([ign_gazebo_launch]),
         launch_arguments=[
             ('ign_args', [
-                LaunchConfiguration('world'), '.sdf',
-                # ' /workspace/tugbot_warehouse.sdf ',
+                # LaunchConfiguration('world'), '.sdf',
+                ' /workspace/depot2.sdf ',
                 ' -v 4 -r ',
                 ' --gui-config ', PathJoinSubstitution(
                     [pkg_turtlebot4_ignition_bringup,
@@ -175,8 +175,8 @@ def generate_launch_description():
     )
 
     # Robot description
-    x_rob = OffsetParser(x, 1)
-    y_rob = OffsetParser(y, -1)
+    x_rob = OffsetParser(x, 0)
+    y_rob = OffsetParser(y, 0)
     robot_description = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([robot_description_launch]),
         launch_arguments=[('model', LaunchConfiguration('model')),
@@ -185,6 +185,7 @@ def generate_launch_description():
 
     # Dock description
     x_dock = OffsetParser(x, 0.5)
+    z_dock = OffsetParser(z, -0.5)
     yaw_dock = OffsetParser(yaw, 3.1416)
     dock_description = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([dock_description_launch]),
@@ -212,7 +213,7 @@ def generate_launch_description():
             '-name', 'standard_dock',
             '-x', x_dock,
             '-y', y,
-            '-z', z,
+            '-z', z_dock,
             '-Y', yaw_dock,
             '-topic', 'standard_dock_description'],
         output='screen')

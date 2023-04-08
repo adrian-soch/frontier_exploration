@@ -54,17 +54,11 @@ void FrontierExplorer::get_frontiers(const std::shared_ptr<frontier_interfaces::
     lck.unlock();
 
     // Pre-process the grid cell map
-    /**
-     * @todo reduce "noise" in map
-     */
+    std::vector<cell> processed = preprocessMap(map.data, map.info.width, map.info.height);
 
     // Compute frontier grid cell map
     frontierCellGrid_.clear();
-	frontierCellGrid_ = computeFrontierCellGrid(map.data, map.info.width, map.info.height);
-
-    // Print maps to txt for debugging
-    gridmap2file("/workspace/src/frontier_exploration/raw.txt", map.data, map.info.width, map.info.height);
-    gridmap2file("/workspace/src/frontier_exploration/frontier.txt", frontierCellGrid_, map.info.width, map.info.height); 
+	frontierCellGrid_ = computeFrontierCellGrid(processed, map.info.width, map.info.height);
 	
 	// Compute the Frontier Regions
 	frontierRegions_.clear();

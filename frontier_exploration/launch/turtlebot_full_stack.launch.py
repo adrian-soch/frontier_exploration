@@ -64,9 +64,9 @@ ARGUMENTS = [
     DeclareLaunchArgument('use_sim_time', default_value='true',
                           choices=['true', 'false'],
                           description='use_sim_time'),
-    DeclareLaunchArgument('world', default_value='depot',
+    DeclareLaunchArgument('world', default_value='turtlebot4_world',
                           description='Ignition World'),
-    DeclareLaunchArgument('model', default_value='standard',
+    DeclareLaunchArgument('model', default_value='lite',
                           choices=['standard', 'lite'],
                           description='Turtlebot4 Model'),
     DeclareLaunchArgument('robot_name', default_value='turtlebot4',
@@ -173,6 +173,8 @@ def generate_launch_description():
     )
 
     # Robot description
+    x_rob = OffsetParser(x, 0)
+    y_rob = OffsetParser(y, -0.25)
     robot_description = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([robot_description_launch]),
         launch_arguments=[('model', LaunchConfiguration('model')),
@@ -193,8 +195,8 @@ def generate_launch_description():
         executable='create',
         arguments=[
             '-name', LaunchConfiguration('robot_name'),
-            '-x', x,
-            '-y', y,
+            '-x', x_rob,
+            '-y', y_rob,
             '-z', z,
             '-Y', yaw,
             '-topic', 'robot_description'],

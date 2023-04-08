@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iterator>
+#include <random>
 
 using namespace std;
 
@@ -30,7 +31,7 @@ void printGrid(vector<int> inputVector, int width, int height){
  *
  * @param	frontierRegions		the input list of regions
  */
-void printFrontierRegions(vector<frontierRegion> frontierRegions ){
+void printFrontierRegions(vector<frontierRegion> &frontierRegions ){
     
     cout << frontierRegions.size() << endl;
     
@@ -87,7 +88,7 @@ vector<pair<int,int>> getNeighbours(int row, int col, int minRow, int minCol, in
  * @param	value		the cell value being searched for
  * @return 				if that specified cell value is encountered	
  */
-bool hasCellValue(vector<cell> grid, int width, vector<pair<int,int>> cells, int value){
+bool hasCellValue(vector<cell> &grid, int width, vector<pair<int,int>> cells, int value){
     
     for (size_t i = 0; i < cells.size(); i++){
         
@@ -106,7 +107,7 @@ bool hasCellValue(vector<cell> grid, int width, vector<pair<int,int>> cells, int
  * @param   height          the grid height
  * @return                  a binary grid of the map's frontier edge cells
  */
-vector<cell> computeFrontierCellGrid(vector<cell> occupancyGrid, int width, int height){
+vector<cell> computeFrontierCellGrid(vector<cell> &occupancyGrid, int width, int height){
     const uint8_t frontier = 1, not_frontier = 0;
     vector<cell> output;
     vector<pair<int,int>> neighbours;
@@ -138,7 +139,7 @@ vector<cell> computeFrontierCellGrid(vector<cell> occupancyGrid, int width, int 
  * @param	height				the grid height
  * @return 						a list of frontier regions extracted
  */
-vector<frontierRegion> computeFrontierRegions(vector<cell> frontierCellGrid, int width, int height,
+vector<frontierRegion> computeFrontierRegions(vector<cell> &frontierCellGrid, int width, int height,
     float resolution, float origin_x, float origin_y, int region_size_thresh){
 
     vector<frontierRegion> output;
@@ -230,25 +231,32 @@ vector<frontierRegion> computeFrontierRegions(vector<cell> frontierCellGrid, int
  *                          Default is 0 for best result.
  * @return frontierRegion   Best region, or region specifie by rank
  */
-frontierRegion selectFrontier(vector<frontierRegion> frontier_regions, int rank,
+frontierRegion selectFrontier(vector<frontierRegion> &frontier_regions, int rank,
     float robot_pose_x, float robot_pose_y){
 
-    float dist;
-    float alpha = 0.95;
-    for(auto reg : frontier_regions) {
+    random_device rd;
+    std::mt19937 e2(rd());
+    // std::uniform_real_distribution<> dist(0, 10);
+    // std::normal_distribution<> dist(2, 2);
+
+    // float alpha = abs(1.0/dist(e2));
+    float alpha = 0.99;
+
+    for(size_t i=0; i<frontier_regions.size(); ++i) {
         // Euclidean dist
-        dist = sqrt(pow((robot_pose_x - reg.x), 2.0) + pow((robot_pose_y - reg.y), 2.0));
-        reg.score = (1.0/dist)*alpha + reg.size*(1-alpha);
+        float dist = sqrt(pow((robot_pose_x - frontier_regions[i].x), 2.0) + 
+            pow((robot_pose_y - frontier_regions[i].y), 2.0));
+
+        frontier_regions[i].score = (1.0/dist)*alpha + frontier_regions[i].size*(1-alpha);
     }
 
     // Sort vec in place
     sort(frontier_regions.begin(), frontier_regions.end(), compareByScore);
-
     return frontier_regions.at(rank);
 }
 
 bool compareByScore(const frontierRegion &a, const frontierRegion &b){
-    return a.score < b.score;
+    return a.score > b.score;
 }
 
 /**
@@ -292,20 +300,15 @@ vector<cell> preprocessMap(vector<cell> &occupancyGrid, int width, int height){
     for (int i = 0; i < height; i++){
         for(int j = 0; j < width; j++){
             
-            
             if (occupancyGrid[i*width + j] == 100){
-                
                 output.push_back(100);
-                
             } else {
                 
                 unkn = 0;
                 free = 0;
-                
                 neighbours = getNeighbours(i, j, 0, 0, height, width, dr_8, dc_8, 8);
                 
                 for (size_t k = 0; k < neighbours.size(); k++){
-                
                     if (occupancyGrid[neighbours[k].first*width + neighbours[k].second] == 0){
                         free++;
                     } else if(occupancyGrid[neighbours[k].first*width + neighbours[k].second] == -1){
