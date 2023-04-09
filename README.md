@@ -11,7 +11,7 @@ B. Yamauchi, "A frontier-based approach for autonomous exploration," Proceedings
 
 > **Frontier Interfaces**: Contains a custom ROS 2 service interface.
 
-> **Learning based frontier detection**: Contains scripts and tools for training a a frontier detector.
+> **Learned frontier detector**: Contains scripts and tools for training and deploying a learned frontier detector.
 
 ## Getting Started
 
