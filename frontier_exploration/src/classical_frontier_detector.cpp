@@ -54,7 +54,9 @@ void FrontierExplorer::get_frontiers(const std::shared_ptr<frontier_interfaces::
     lck.unlock();
 
     // Pre-process the grid cell map
-    std::vector<cell> processed = preprocessMap(map.data, map.info.width, map.info.height);
+    std::vector<cell> processed = map.data;
+
+    processed = preprocessMap(processed, map.info.width, map.info.height, 6);
 
     // Compute frontier grid cell map
     frontierCellGrid_.clear();
@@ -67,9 +69,9 @@ void FrontierExplorer::get_frontiers(const std::shared_ptr<frontier_interfaces::
 
     nav_msgs::msg::OccupancyGrid f_map = map;
 
-    std::transform(frontierCellGrid_.begin(), frontierCellGrid_.end(), frontierCellGrid_.begin(),
-               std::bind(std::multiplies<cell>(), std::placeholders::_1, 255));
-    f_map.data = frontierCellGrid_;
+    // std::transform(frontierCellGrid_.begin(), frontierCellGrid_.end(), frontierCellGrid_.begin(),
+    //            std::bind(std::multiplies<cell>(), std::placeholders::_1, 255));
+    f_map.data = processed;
     frontier_map_publisher_->publish(f_map);
 
     publishFrontiers();

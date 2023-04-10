@@ -290,38 +290,39 @@ void gridmap2file(string fullpath, vector<cell> &map, int width, int height)
  * @param	height				the grid height
  * @return 						a preprocessed occupancy map 
  */
-vector<cell> preprocessMap(vector<cell> &occupancyGrid, int width, int height){
+vector<cell> preprocessMap(vector<cell> &occupancyGrid, int width, int height, int num_iters){
     
-    vector<cell> output;
-    
-    vector<pair<int,int>> neighbours;
     cell unkn, free;
-    
-    for (int i = 0; i < height; i++){
-        for(int j = 0; j < width; j++){
-            
-            if (occupancyGrid[i*width + j] == 100){
-                output.push_back(100);
-            } else {
+    vector<pair<int,int>> neighbours;
+    vector<cell> output = occupancyGrid;
+
+    for(; num_iters > 0; --num_iters) {
+        for (size_t i = 0; i < height; ++i){
+            for(size_t j = 0; j < width; ++j){
                 
-                unkn = 0;
-                free = 0;
-                neighbours = getNeighbours(i, j, 0, 0, height, width, dr_8, dc_8, 8);
-                
-                for (size_t k = 0; k < neighbours.size(); k++){
-                    if (occupancyGrid[neighbours[k].first*width + neighbours[k].second] == 0){
-                        free++;
-                    } else if(occupancyGrid[neighbours[k].first*width + neighbours[k].second] == -1){
-                        unkn++;
+                if (occupancyGrid[i*width + j] == 100){
+                    output.push_back(100);
+                } else {
+                    
+                    unkn = 0;
+                    free = 0;
+                    neighbours = getNeighbours(i, j, 0, 0, height, width, dr_8, dc_8, 8);
+                    
+                    for (size_t k = 0; k < neighbours.size(); k++){
+                        if (occupancyGrid[neighbours[k].first*width + neighbours[k].second] == 0){
+                            free++;
+                        } else if(occupancyGrid[neighbours[k].first*width + neighbours[k].second] == -1){
+                            unkn++;
+                        }
+                    }
+                    
+                    if (unkn >= free){
+                        output.push_back(-1);
+                    } else {
+                        output.push_back(0);
                     }
                 }
-                
-                if (unkn >= free){
-                    output.push_back(-1);
-                } else {
-                    output.push_back(0);
-                }			
-            }		
+            }
         }
     }
     return output;

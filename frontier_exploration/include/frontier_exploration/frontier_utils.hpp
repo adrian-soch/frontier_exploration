@@ -37,6 +37,6 @@ bool compareByScore(const frontierRegion &a, const frontierRegion &b);
 
 void gridmap2file(std::string fullpath, std::vector<cell> &map, int width, int height);
 
-std::vector<cell> preprocessMap(std::vector<cell> &occupancyGrid, int width, int height);
+std::vector<cell> preprocessMap(std::vector<cell> &occupancyGrid, int width, int height, int num_iters);
 
 #endif
