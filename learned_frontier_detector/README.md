@@ -1,8 +1,25 @@
 # learning based frontier detection
 
-Dataset annotated via Roboflow and trained with Google Colab.
+This is a ROS 2 package that consumes an occupancy grid map and finds frontiers. It acts as a server to any node that requests a frontier goal pose.
 
-More details will be added soon.
+## Setup
+
+```
+pip install -r requirements.txt
+
+colcon build
+```
+
+## Run
+
+```
+ros2 run learned_frontier_detector frontier_detector
+```
+
+## Training
+Roboflow was used to label the dataset. Then a google colab notebook was used to perfrom transfer learning with the custom dataset.
+
+See [yolov5-custom-training-64.ipynb](learned_frontier_detector/training/yolov5-custom-training-64.ipynb) for the commands to train the network. The backbone of the network was frozen to finetune the head of the network.
 
 ## Resources
 

@@ -12,6 +12,13 @@ FILE = Path(__file__).resolve()
 ROOT = FILE.parents[0]  
 # WEIGHTS = ROOT / 'weights'
 
+
+from yolov5.models.common import DetectMultiBackend
+from yolov5.models.common import DetectMultiBackend
+from yolov5.utils.augmentations import letterbox
+from yolov5.utils.general import (non_max_suppression, scale_boxes)
+from yolov5.utils.torch_utils import time_sync, select_device
+
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))  # add ROOT to PATH
 if str(ROOT / 'yolov5') not in sys.path:
@@ -20,11 +27,6 @@ if str(ROOT / 'yolov5/utils') not in sys.path:
     sys.path.append(str(ROOT / 'yolov5/utils'))  # add yolov5 ROOT to PATH
 
 ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
-
-from yolov5.models.common import DetectMultiBackend
-from yolov5.utils.augmentations import letterbox
-from yolov5.utils.general import (non_max_suppression, scale_boxes)
-from yolov5.utils.torch_utils import time_sync, select_device
 
 class FrontierDetector():
 

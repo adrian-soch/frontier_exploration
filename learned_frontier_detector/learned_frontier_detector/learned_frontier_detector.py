@@ -42,8 +42,7 @@ class FrontierDetector(Node):
         self.map = OccupancyGrid()
 
         cudnn.benchmark = True  # set True to speed up constant image size inference
-        # self.model = torch.hub.load('ultralytics/yolov5', 'custom', path=weights_path)
-        self.model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
+        self.model = torch.hub.load('ultralytics/yolov5', 'custom', path=weights_path)
         
         self.get_logger().info('Starting detector.')
 
@@ -69,14 +68,8 @@ class FrontierDetector(Node):
         """
 
         # convert occupancy grid to grayscale image
-        # img = np.ones((map.info.width,map.info.height), dtype=np.uint8)
-
-
         img = np.array(255 * (map.data != -1)).astype('uint8')
         img[map.data == -1] = 128
-        # img[map.data >= 1] = 0
-
-        # arr[arr > 255] = x
 
         # Scale image to (64,64)
         # img = cv.resize(img, (64, 64), interpolation=cv.INTER_AREA)
@@ -92,10 +85,6 @@ class FrontierDetector(Node):
         pix2meters = 1.0/map.info.resolution
         scaleX = map.info.width/64.0 * pix2meters
         scaleY = map.info.height/64.0 * pix2meters
-
-        # det = pred[0]
-        # if det is not None and len(det):
-
 
         goal = PoseStamped()
         goal.header.stamp = self.get_clock().now().to_msg()
