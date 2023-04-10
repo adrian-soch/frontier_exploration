@@ -4,28 +4,38 @@
 This node is for detecting frontier regions in an accupancy map with a learned model.
 It serves requests from another node asking for the best frontier to travel to in the current map.
 '''
+import numpy as np
  
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import OccupancyGrid
+from visualization_msgs.msg import Marker
+from geometry_msgs.msg import Point
 
 from tf2_ros import TransformException
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 
 from frontier_interfaces.srv import FrontierGoal
+from ament_index_python.packages import get_package_share_directory
 
-import torch
-import torch.backends.cudnn as cudnn
+from dataclasses import dataclass
 
-import cv2 as cv
-import numpy as np
+from learned_frontier_detector.detector import FrontierDetector
+
+@dataclass
+class Frontier:
+    size: int
+    x: float
+    y: float
+    score: float = 0.0
+    
  
-class FrontierDetector(Node):
+class FrontierDetectorNode(Node):
 
     def __init__(self):
-        super().__init__('frontier_detector')
+        super().__init__('frontier_detector_node')
         self.srv = self.create_service(FrontierGoal,'frontier_pose', self.detect_callback)
 
         self.subscription = self.create_subscription(
@@ -33,69 +43,62 @@ class FrontierDetector(Node):
             self.map_callback, 2)
         self.subscription  # prevent unused variable warning
 
+        self.marker_pub = self.create_publisher(Marker, 'f_marker', 2)
+
+        # TF for robot pose
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
-        self.declare_parameter('weights_path', 'yolov5n_frontier_64.pt')
-        weights_path = self.get_parameter('weights_path').get_parameter_value().string_value
-
         self.map = OccupancyGrid()
 
-        cudnn.benchmark = True  # set True to speed up constant image size inference
-        self.model = torch.hub.load('ultralytics/yolov5', 'custom', path=weights_path)
+        # Get path to model weights
+        weights = get_package_share_directory('learned_frontier_detector') + \
+            '/weights/yolov5n_frontier_64.pt'
         
+        # Create detector
+        self.detector = FrontierDetector(weights=weights, imgsz=(64,64),
+                conf_thresh=0.6, iou_thres=0.4,max_det=30)
+
         self.get_logger().info('Starting detector.')
 
     def map_callback(self, msg):
         self.get_logger().info('Got message.')
         self.map = msg
 
-    @torch.no_grad()
     def detect_callback(self, request, response):
 
         self.get_logger().info('Got Request.')
 
+        # Copy map to local variable
         map = self.map
-
-        map.info
-
-        """
-        Inference the model
-        scale detections back to original size
-        pick best frontier
-        publish frontier markers
-        optional publish image with bboxes annotated
-        """
 
         # convert occupancy grid to grayscale image
         img = np.array(255 * (map.data != -1)).astype('uint8')
         img[map.data == -1] = 128
 
-        # Scale image to (64,64)
-        # img = cv.resize(img, (64, 64), interpolation=cv.INTER_AREA)
-        # img = np.ascontiguousarray(img)
-        # im = torch.from_numpy(im).to(self.device)
+        # Inference - [xmin, ymin, xmax, ymax, confidence, class]
+        pred = self.detector.update(img)[0]
+        print(pred)
 
-        # Inference
-        pred = self.model(img)
+        frontiers = self.pred2regions(pred)
+        self.marker_pub(frontiers)
 
-        pred.print()
+        # Select best frontier
+        goal_px = self.select_frontier(frontiers)
 
-        # Tranform reults to map coordinates
-        pix2meters = 1.0/map.info.resolution
-        scaleX = map.info.width/64.0 * pix2meters
-        scaleY = map.info.height/64.0 * pix2meters
+        # Transform reults to map coordinates
+        goal_m = self.px2meters(goal_px, map.info.resolution, map.info.origin)
 
-        goal = PoseStamped()
-        goal.header.stamp = self.get_clock().now().to_msg()
-        goal.header.frame_id = 'odom'
-        goal.pose.orientation.x = 0.0
-        goal.pose.orientation.y = 0.0
+        goal_m.header.stamp = self.get_clock().now().to_msg()
+        goal_m.header.frame_id = 'odom'
 
         self.get_logger().info("Req: %d. Returned x: %f y: %f .".format(request.goal_rank,
-            goal.pose.position.x, goal.pose.position.y))
-        response.goal_pose = goal
+            goal_m.pose.position.x, goal_m.pose.position.y))
+        response.goal_pose = goal_m
         return response
+    
+    def select_frontier(self, dets):
+        print(dets[0])
     
     def get_current_pose(self) -> PoseStamped:
         try:
@@ -114,11 +117,39 @@ class FrontierDetector(Node):
         p.header.stamp = self.navigator.get_clock().now().to_msg()
         p.header.frame_id = 'odom'
         return p
+    
+    def publishMarkers(self, regions):
+        spheres = Marker()
+        spheres.header.frame_id = 'map'
+        spheres.header.stamp = self.get_clock().now().to_msg()
+        spheres.type = Marker.SPHERE_LIST
+        spheres.action = Marker.ADD
+        spheres.scale.x = 0.1
+        spheres.scale.y = 0.1
+        spheres.scale.z = 0.1
+        spheres.color.a = 1.0
+        spheres.color.g = 1.0
+        for r in regions:
+            p = Point()
+            p.x = r.x
+            p.y = r.y
+            p.z = 0.05
+            spheres.points.append(p)
+        
+        self.marker_pub.publish(spheres)
+
+    def pred2regions(self, pred):
+        
+
+    def px2meters(self, resolution, origin) -> PoseStamped:
+        pix2meters = 1.0/map.info.resolution
+
+
 
 def main(args=None):
     rclpy.init(args=args)
-    frontier_detector = FrontierDetector() 
-    rclpy.spin(frontier_detector)
+    frontier_detector_node = FrontierDetectorNode() 
+    rclpy.spin(frontier_detector_node)
     rclpy.shutdown()
     
 if __name__ == '__main__':

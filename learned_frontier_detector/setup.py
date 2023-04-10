@@ -25,8 +25,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'frontier_detector = learned_frontier_detector.learned_frontier_detector:main',
-            'wip_detector = learned_frontier_detector.slim_detect:main'
+            'frontier_detector = learned_frontier_detector.learned_frontier_detector:main'
         ],
     },
 )
