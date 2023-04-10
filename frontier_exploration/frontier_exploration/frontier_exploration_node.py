@@ -6,7 +6,6 @@ sends the goal points to the nav2 stack until the the entire environment has bee
 
 Reference code: https://automaticaddison.com/how-to-send-goals-to-the-ros-2-navigation-stack-nav2/
 '''
- 
 import rclpy
 from rclpy.node import Node
 from rclpy.duration import Duration
@@ -48,6 +47,12 @@ class FrontierExplorer(Node):
         while not fully_explored:
 
             # Get a frontier we can drive to
+
+            # Delay getting next goal so map updates
+            prev_time = self.get_clock().now()
+            while self.get_clock().now() - prev_time < Duration(seconds=0.3):
+                pass
+
             self.goal_pose = self.get_reachable_goal()
 
             # If we cant find a path to any frontiers
