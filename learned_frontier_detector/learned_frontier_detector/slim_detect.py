@@ -1,38 +1,24 @@
 #! /usr/bin/env python3
 
-import sys, os
-from pathlib import Path
-
 import cv2
 import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
 
-FILE = Path(__file__).resolve()
-ROOT = FILE.parents[0]  
-# WEIGHTS = ROOT / 'weights'
+from learned_frontier_detector.models.common import DetectMultiBackend
+from learned_frontier_detector.utils.augmentations import letterbox
+from learned_frontier_detector.utils.general import (non_max_suppression, scale_boxes)
+from learned_frontier_detector.utils.torch_utils import time_sync, select_device
 
-
-from yolov5.models.common import DetectMultiBackend
-from yolov5.models.common import DetectMultiBackend
-from yolov5.utils.augmentations import letterbox
-from yolov5.utils.general import (non_max_suppression, scale_boxes)
-from yolov5.utils.torch_utils import time_sync, select_device
-
-if str(ROOT) not in sys.path:
-    sys.path.append(str(ROOT))  # add ROOT to PATH
-if str(ROOT / 'yolov5') not in sys.path:
-    sys.path.append(str(ROOT / 'yolov5'))  # add yolov5 ROOT to PATH
-if str(ROOT / 'yolov5/utils') not in sys.path:
-    sys.path.append(str(ROOT / 'yolov5/utils'))  # add yolov5 ROOT to PATH
-
-ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
+from ament_index_python.packages import get_package_share_directory
 
 class FrontierDetector():
 
     def __init__(self):
 
-        yolo_weights= './weights/yolov5n_frontier_64.pt'  # model.pt path(s)
+        share_path = get_package_share_directory('learned_frontier_detector')
+
+        yolo_weights= str(share_path) + '/weights/yolov5n_frontier_64.pt'  # model.pt path(s)
         self.imgsz=(64, 64)  # inference size (height, width)
         self.conf_thres=0.6  # confidence threshold
         self.iou_thres=0.45  # NMS IOU threshold
