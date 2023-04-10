@@ -5,6 +5,7 @@ This node is for detecting frontier regions in an accupancy map with a learned m
 It serves requests from another node asking for the best frontier to travel to in the current map.
 '''
 import numpy as np
+import cv2
  
 import rclpy
 from rclpy.node import Node
@@ -73,11 +74,17 @@ class FrontierDetectorNode(Node):
         map = self.map
 
         # convert occupancy grid to grayscale image
-        img = np.array(255 * (map.data != -1)).astype('uint8')
+        img = np.ones((map.info.width, map.info.height), dtype=np.uint8)*255
+        print(img)
+
+        # img = (255 * (map.data != -1)).astype('uint8')
+
         img[map.data == -1] = 128
 
-        # Inference - [xmin, ymin, xmax, ymax, confidence, class]
-        pred = self.detector.update(img)[0]
+        cv2.imwrite("/workspace/src/raw_convert.png", img)
+
+        # Inference - list[xmin, ymin, xmax, ymax, confidence, class]
+        pred = self.detector.update(img)
         print(pred)
 
         frontiers = self.pred2regions(pred)
@@ -139,7 +146,10 @@ class FrontierDetectorNode(Node):
         self.marker_pub.publish(spheres)
 
     def pred2regions(self, pred):
-        
+        frontiers = []
+        for i in len(pred):
+            print(pred[i])
+        # f = Frontier()
 
     def px2meters(self, resolution, origin) -> PoseStamped:
         pix2meters = 1.0/map.info.resolution

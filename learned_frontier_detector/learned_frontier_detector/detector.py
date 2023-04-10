@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-from cv2 import resize, INTER_AREA
+import cv2
 import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
@@ -37,7 +37,11 @@ class FrontierDetector():
         # im = letterbox(im, self.imgsz, stride=32, auto=True)[0]
 
         # Scale image to (64,64)
-        img = resize(img, (64, 64), interpolation=INTER_AREA)
+        im = cv2.resize(im, (64, 64), interpolation=cv2.INTER_AREA)
+        im = cv2.cvtColor(im, cv2.COLOR_GRAY2RGB)
+
+        #DEBUG
+        cv2.imwrite("/workspace/src/scaled.png", im)
 
         im = im.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
         im = np.ascontiguousarray(im)
@@ -67,8 +71,8 @@ class FrontierDetector():
         return det
 
 def main():
-    from cv2 import imread
-    image = imread("/workspace/08_04_2023_15_58_00/0_504_779_0.030000.png")
+
+    image = cv2.imread("/workspace/08_04_2023_15_58_00/0_504_779_0.030000.png")
     fd = FrontierDetector()
     fd.update(image)
     
