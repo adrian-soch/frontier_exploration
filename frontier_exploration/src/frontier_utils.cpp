@@ -18,8 +18,8 @@ using namespace std;
 void printGrid(vector<int> inputVector, int width, int height){
     
     cout << width << " " << height << endl;
-    for (int i = 0; i < height; i++){
-        for(int j = 0; j < width; j++){
+    for (int i = 0; i < height; ++i){
+        for(int j = 0; j < width; ++j){
             cout << inputVector[i*width +j] << "\t";
         }
         cout << endl;
@@ -35,7 +35,7 @@ void printFrontierRegions(vector<frontierRegion> &frontierRegions ){
     
     cout << frontierRegions.size() << endl;
     
-    for (size_t i = 0; i < frontierRegions.size(); i++){
+    for (size_t i = 0; i < frontierRegions.size(); ++i){
             cout << frontierRegions[i].size << " ";
             cout << frontierRegions[i].x << " ";
             cout << frontierRegions[i].y << endl;
@@ -64,13 +64,13 @@ vector<pair<int,int>> getNeighbours(int row, int col, int minRow, int minCol, in
     vector<pair<int,int>> output;
     int neighbourRow, neighbourCol;
     
-    for (int i = 0; i < numberOfConnections; i++){
+    for (int i = 0; i < numberOfConnections; ++i){
         
         neighbourRow = row + dr[i];
         neighbourCol = col + dc[i];
         
-        if (neighbourRow < minRow || neighbourRow >= maxRow) continue;
-        if (neighbourCol < minCol || neighbourCol >= maxCol) continue;
+        if (neighbourRow < minRow || neighbourRow >= maxRow) {continue;}
+        if (neighbourCol < minCol || neighbourCol >= maxCol) {continue;}
         
         output.push_back(make_pair(neighbourRow,neighbourCol));
         
@@ -90,9 +90,9 @@ vector<pair<int,int>> getNeighbours(int row, int col, int minRow, int minCol, in
  */
 bool hasCellValue(vector<cell> &grid, int width, vector<pair<int,int>> cells, int value){
     
-    for (size_t i = 0; i < cells.size(); i++){
+    for (size_t i = 0; i < cells.size(); ++i){
         
-        if (grid[cells[i].first*width + cells[i].second] == value) return 1;
+        if (grid[cells[i].first*width + cells[i].second] == value) {return 1;}
         
     }
     return 0;
@@ -112,8 +112,8 @@ vector<cell> computeFrontierCellGrid(vector<cell> &occupancyGrid, int width, int
     vector<cell> output;
     vector<pair<int,int>> neighbours;
     
-    for (int i = 0; i < height; i++){
-        for(int j = 0; j < width; j++){
+    for (int i = 0; i < height; ++i){
+        for(int j = 0; j < width; ++j){
         
             if (occupancyGrid[i*width + j] == 0){
                 neighbours = getNeighbours(i, j, 0, 0, height, width, dr_4, dc_4, 4);
@@ -154,8 +154,8 @@ vector<frontierRegion> computeFrontierRegions(vector<cell> &frontierCellGrid, in
     newRegion.x = 0;
     newRegion.y = 0;
     
-    for (int i = 0; i < height; i++){
-        for(int j = 0; j < width; j++){
+    for (int i = 0; i < height; ++i){
+        for(int j = 0; j < width; ++j){
             
             if (frontierCellGrid[i*width +j] == 1 && visited[i*width +j] == 0){
                 
@@ -297,18 +297,17 @@ vector<cell> preprocessMap(vector<cell> &occupancyGrid, int width, int height, i
     vector<cell> output = occupancyGrid;
 
     for(; num_iters > 0; --num_iters) {
-        for (size_t i = 0; i < height; ++i){
-            for(size_t j = 0; j < width; ++j){
-                
+        for (int i = 0; i < height; ++i){
+            for(int j = 0; j < width; ++j){
                 if (occupancyGrid[i*width + j] == 100){
-                    output.push_back(100);
+                    output[i*width + j] = 100;
                 } else {
                     
                     unkn = 0;
                     free = 0;
                     neighbours = getNeighbours(i, j, 0, 0, height, width, dr_8, dc_8, 8);
                     
-                    for (size_t k = 0; k < neighbours.size(); k++){
+                    for (size_t k = 0; k < neighbours.size(); ++k){
                         if (occupancyGrid[neighbours[k].first*width + neighbours[k].second] == 0){
                             free++;
                         } else if(occupancyGrid[neighbours[k].first*width + neighbours[k].second] == -1){
@@ -317,13 +316,14 @@ vector<cell> preprocessMap(vector<cell> &occupancyGrid, int width, int height, i
                     }
                     
                     if (unkn >= free){
-                        output.push_back(-1);
+                        output[i*width + j] = -1;
                     } else {
-                        output.push_back(0);
+                        output[i*width + j] = 0;
                     }
                 }
             }
         }
+        occupancyGrid = output;
     }
     return output;
 }

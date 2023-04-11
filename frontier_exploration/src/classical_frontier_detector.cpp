@@ -54,9 +54,7 @@ void FrontierExplorer::get_frontiers(const std::shared_ptr<frontier_interfaces::
     lck.unlock();
 
     // Pre-process the grid cell map
-    std::vector<cell> processed = map.data;
-
-    processed = preprocessMap(processed, map.info.width, map.info.height, 6);
+    std::vector<cell> processed = preprocessMap(map.data, map.info.width, map.info.height, 5);
 
     // Compute frontier grid cell map
     frontierCellGrid_.clear();
@@ -87,7 +85,7 @@ void FrontierExplorer::get_frontiers(const std::shared_ptr<frontier_interfaces::
     }
     
     // Find best goal based on position and size
-    frontierRegion goal = selectFrontier(frontierRegions_, 0,
+    frontierRegion goal = selectFrontier(frontierRegions_, request->goal_rank,
     stransform.transform.translation.x , stransform.transform.translation.y);
 
     // Create and init message
