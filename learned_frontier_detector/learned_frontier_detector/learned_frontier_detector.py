@@ -74,18 +74,18 @@ class FrontierDetectorNode(Node):
         map = self.map
 
         # convert occupancy grid to grayscale image
-        img = np.ones((map.info.width, map.info.height), dtype=np.uint8)*255
+        img = np.ones_like(np.array(map.data), dtype=np.uint8)*255
+        img[np.array(map.data) == -1] = 128
+        img[np.array(map.data) >= 1] = 0
+
+        img = np.reshape(img, (map.info.height, map.info.width))
         print(img)
-
-        # img = (255 * (map.data != -1)).astype('uint8')
-
-        img[map.data == -1] = 128
 
         cv2.imwrite("/workspace/src/raw_convert.png", img)
 
         # Inference - list[xmin, ymin, xmax, ymax, confidence, class]
         pred = self.detector.update(img)
-        print(pred)
+        pred = pred.numpy()  # tensor to numpy
 
         frontiers = self.pred2regions(pred)
         self.marker_pub(frontiers)
