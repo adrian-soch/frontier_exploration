@@ -67,7 +67,7 @@ public:
             return;
         }
 
-        std::vector<cell> processed = preprocessMap(msg->data, msg->info.width, msg->info.height);
+        std::vector<cell> processed = preprocessMap(msg->data, msg->info.width, msg->info.height, 7);
 
         // Convert the occupancy grid message to an OpenCV Mat
         cv::Mat occupancy_grid(msg->info.height, msg->info.width, CV_8SC1, (void*) processed.data());

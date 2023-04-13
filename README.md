@@ -11,7 +11,7 @@ B. Yamauchi, "A frontier-based approach for autonomous exploration," Proceedings
 
 > **Frontier Interfaces**: Contains a custom ROS 2 service interface.
 
-> **Learning based frontier detection**: Contains scripts and tools for training a a frontier detector.
+> **Learned frontier detector**: Contains scripts and tools for training and deploying a learned frontier detector.
 
 ## Getting Started
 
@@ -32,8 +32,8 @@ ros2 launch frontier_exploration exploration.launch.py
 
 # The node can be run independantly via ros2 run
 # And can be tested with:
-ros2 service call  /frontier_pose frontier_interfaces/srv/FrontierGoal goal_rank:\ 0\ 
-requester: making request: frontier_interfaces.srv.FrontierGoal_Request(goal_rank=0)
+ros2 service call  /frontier_pose frontier_interfaces/srv/FrontierGoal goal_rank:\ 0
+#requester: making request: frontier_interfaces.srv.FrontierGoal_Request(goal_rank=0)
 
 ```
 

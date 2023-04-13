@@ -101,6 +101,10 @@ def generate_launch_description():
     pkg_ros_ign_gazebo = get_package_share_directory(
         'ros_ign_gazebo')
 
+    #pkg_share = get_package_share_directory('frontier_exploration')
+    #world_file_name = 'cafe.world'
+    #world_path = os.path.join(pkg_share, 'worlds', world_file_name)
+
     # Set ignition resource path
     ign_resource_path = SetEnvironmentVariable(
         name='IGN_GAZEBO_RESOURCE_PATH',
@@ -159,8 +163,8 @@ def generate_launch_description():
         PythonLaunchDescriptionSource([ign_gazebo_launch]),
         launch_arguments=[
             ('ign_args', [
-                LaunchConfiguration('world'), '.sdf',
-                # ' /workspace/tugbot_warehouse.sdf ',
+                # LaunchConfiguration('world'), '.sdf',
+                ' /workspace/depot2.sdf ',
                 ' -v 4 -r ',
                 ' --gui-config ', PathJoinSubstitution(
                     [pkg_turtlebot4_ignition_bringup,
@@ -171,6 +175,8 @@ def generate_launch_description():
     )
 
     # Robot description
+    x_rob = OffsetParser(x, 0)
+    y_rob = OffsetParser(y, 0)
     robot_description = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([robot_description_launch]),
         launch_arguments=[('model', LaunchConfiguration('model')),
@@ -179,6 +185,7 @@ def generate_launch_description():
 
     # Dock description
     x_dock = OffsetParser(x, 0.5)
+    z_dock = OffsetParser(z, -0.5)
     yaw_dock = OffsetParser(yaw, 3.1416)
     dock_description = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([dock_description_launch]),
@@ -191,8 +198,8 @@ def generate_launch_description():
         executable='create',
         arguments=[
             '-name', LaunchConfiguration('robot_name'),
-            '-x 60.0',
-            '-y 60.0',
+            '-x', x_rob,
+            '-y', y_rob,
             '-z', z,
             '-Y', yaw,
             '-topic', 'robot_description'],
@@ -206,7 +213,7 @@ def generate_launch_description():
             '-name', 'standard_dock',
             '-x', x_dock,
             '-y', y,
-            '-z', z,
+            '-z', z_dock,
             '-Y', yaw_dock,
             '-topic', 'standard_dock_description'],
         output='screen')
