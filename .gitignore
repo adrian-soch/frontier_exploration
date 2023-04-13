@@ -38,4 +38,4 @@
 *.app
 
 .vscode/*
-bags/*
+*/bags/*
