@@ -10,6 +10,8 @@ from learned_frontier_detector.utils.augmentations import letterbox
 from learned_frontier_detector.utils.general import (non_max_suppression, scale_boxes)
 from learned_frontier_detector.utils.torch_utils import time_sync, select_device
 
+DEBUG = True
+
 class FrontierDetector():
 
     def __init__(self, weights, imgsz=(640,640), conf_thresh=0.6, iou_thres=0.4, max_det=30, device='cpu'):
@@ -34,14 +36,21 @@ class FrontierDetector():
         t1 = time_sync()
 
         im0 = im.copy()
+        im0 = cv2.cvtColor(im0, cv2.COLOR_GRAY2RGB)
         # im = letterbox(im, self.imgsz, stride=32, auto=True)[0]
 
         # Scale image to (64,64)
         im = cv2.resize(im, (64, 64), interpolation=cv2.INTER_AREA)
         im = cv2.cvtColor(im, cv2.COLOR_GRAY2RGB)
 
-        #DEBUG
-        cv2.imwrite("/workspace/src/scaled.png", im)
+        # Flip from map coordinates to image coordinates
+        # im = cv2.flip(im, 0)
+
+        if DEBUG:
+            cv2.imwrite("/workspace/src/scaled.png", im)
+            # cv2.imwrite("/workspace/src/scaled_flip1.png", im1)
+            # cv2.imwrite("/workspace/src/scaled_flip0.png", im0)
+            # cv2.imwrite("/workspace/src/scaled_flip2.png", im2)
 
         im = im.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
         im = np.ascontiguousarray(im)
@@ -65,6 +74,17 @@ class FrontierDetector():
             # Rescale boxes from img_size to im0 size
             det[:, :4] = scale_boxes(im.shape[2:], det[:, :4], im0.shape).round()  # xyxy
         t2 = time_sync()
+
+        if DEBUG:
+            d = det.numpy()
+            for i in range(d.shape[0]):
+                data = d[i]
+                start = (np.int32((data[0], data[2])))
+                end = (np.int32((data[1], data[3])))
+                im0 = cv2.rectangle(im0, start, end, (0,255,0), 2)
+
+                print(start, end)
+            cv2.imwrite("/workspace/src/result.png", im0)
 
         # print(t2-t1)
 

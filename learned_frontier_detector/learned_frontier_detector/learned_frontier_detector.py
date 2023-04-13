@@ -78,8 +78,9 @@ class FrontierDetectorNode(Node):
         img[np.array(map.data) == -1] = 128
         img[np.array(map.data) >= 1] = 0
 
+
         img = np.reshape(img, (map.info.height, map.info.width))
-        print(img)
+        img = cv2.flip(img, 0)
 
         cv2.imwrite("/workspace/src/raw_convert.png", img)
 
@@ -87,25 +88,29 @@ class FrontierDetectorNode(Node):
         pred = self.detector.update(img)
         pred = pred.numpy()  # tensor to numpy
 
-        frontiers = self.pred2regions(pred)
-        self.marker_pub(frontiers)
+        frontiers = self.pred2regions(pred, map.info.resolution, map.info.origin)
+
+        print(frontiers)
+        self.publishMarkers(frontiers)
 
         # Select best frontier
-        goal_px = self.select_frontier(frontiers)
+        goal = self.select_frontier(frontiers)
 
-        # Transform reults to map coordinates
-        goal_m = self.px2meters(goal_px, map.info.resolution, map.info.origin)
+        goal.header.stamp = self.get_clock().now().to_msg()
+        goal.header.frame_id = 'odom'
 
-        goal_m.header.stamp = self.get_clock().now().to_msg()
-        goal_m.header.frame_id = 'odom'
-
-        self.get_logger().info("Req: %d. Returned x: %f y: %f .".format(request.goal_rank,
-            goal_m.pose.position.x, goal_m.pose.position.y))
-        response.goal_pose = goal_m
+        self.get_logger().info("Req: {:d}. Returned x: {:f} y: {:f} .".format(request.goal_rank,
+            goal.pose.position.x, goal.pose.position.y))
+        response.goal_pose = goal
         return response
     
-    def select_frontier(self, dets):
-        print(dets[0])
+    def select_frontier(self, frontiers) -> PoseStamped:
+        out = PoseStamped()
+
+        out.pose.position.x = frontiers[0].x
+        out.pose.position.y = frontiers[0].y
+
+        return out
     
     def get_current_pose(self) -> PoseStamped:
         try:
@@ -145,15 +150,22 @@ class FrontierDetectorNode(Node):
         
         self.marker_pub.publish(spheres)
 
-    def pred2regions(self, pred):
+    def pred2regions(self, pred, resolution, origin):
         frontiers = []
-        for i in len(pred):
-            print(pred[i])
-        # f = Frontier()
+        for i in range(pred.shape[0]):
+            data = pred[i]
+            x_len = data[2] - data[0]
+            y_len = data[3] - data[1]
+            area = x_len*y_len
 
-    def px2meters(self, resolution, origin) -> PoseStamped:
-        pix2meters = 1.0/map.info.resolution
+            x = data[0] + x_len/2.0
+            y = data[2] + y_len/2.0
+            x = x*resolution + origin.position.x
+            y = y*resolution + origin.position.y
 
+            f = Frontier(size=area, x=x, y=y, score=0)
+            frontiers.append(f)
+        return frontiers
 
 
 def main(args=None):
