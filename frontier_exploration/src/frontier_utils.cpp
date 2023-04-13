@@ -234,12 +234,12 @@ vector<frontierRegion> computeFrontierRegions(vector<cell> &frontierCellGrid, in
 frontierRegion selectFrontier(vector<frontierRegion> &frontier_regions, int rank,
     float robot_pose_x, float robot_pose_y){
 
-    random_device rd;
-    std::mt19937 e2(rd());
+    // random_device rd;
+    // std::mt19937 e2(rd());
     // std::uniform_real_distribution<> dist(0, 10);
     // std::normal_distribution<> dist(2, 2);
-
     // float alpha = abs(1.0/dist(e2));
+    
     float alpha = 0.99;
 
     for(size_t i=0; i<frontier_regions.size(); ++i) {

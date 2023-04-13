@@ -10,7 +10,7 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='learned_frontier_detector',
-            executable='learned_frontier_detector',
+            executable='frontier_detector',
             name='learned_frontier_detector',
             output='screen',
             parameters=[

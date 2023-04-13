@@ -25,12 +25,18 @@ from dataclasses import dataclass
 
 from learned_frontier_detector.detector import FrontierDetector
 
+
 @dataclass
 class Frontier:
+    """Frontier object
+    """
     size: int
     x: float
     y: float
     score: float = 0.0
+
+    def __lt__(self, other):
+         return self.score < other.score
     
  
 class FrontierDetectorNode(Node):
@@ -67,52 +73,93 @@ class FrontierDetectorNode(Node):
         self.map = msg
 
     def detect_callback(self, request, response):
+        """Service callback for frontier goal request.
+        Takes the latest map and predicts frontier regions.
+        Best frontier is selected and returned to client.
 
-        self.get_logger().info('Got Request.')
+        Args:
+            request (int): Rank of the goal (0...n) best to worst
+            response (Pose): Frontier goal pose
+
+        Returns:
+            PoseStamped:
+        """
+        self.get_logger().info('Got Request, goal rank: ' + str(request.goal_rank))
 
         # Copy map to local variable
         map = self.map
 
-        # convert occupancy grid to grayscale image
+        # convert occupancy grid to 2D image
         img = np.ones_like(np.array(map.data), dtype=np.uint8)*255
         img[np.array(map.data) == -1] = 128
         img[np.array(map.data) >= 1] = 0
 
-
+        # Reshape and flip to convert map -> pixel coordinates
         img = np.reshape(img, (map.info.height, map.info.width))
         img = cv2.flip(img, 0)
-
-        cv2.imwrite("/workspace/src/raw_convert.png", img)
 
         # Inference - list[xmin, ymin, xmax, ymax, confidence, class]
         pred = self.detector.update(img)
         pred = pred.numpy()  # tensor to numpy
 
-        frontiers = self.pred2regions(pred, map.info.resolution, map.info.origin, map.info.width, map.info.height)
+        # Convert preditions to list of frotiers
+        frontiers = self.pred2regions(pred, map.info.resolution, map.info.origin, map.info.height)
 
-        print(frontiers)
+        # Publish fronters as markers
         self.publishMarkers(frontiers)
 
         # Select best frontier
-        goal = self.select_frontier(frontiers)
+        goal = self.select_frontier(frontiers, rank=request.goal_rank, alpha=0.6, frame='map')
 
-        goal.header.stamp = self.get_clock().now().to_msg()
-        goal.header.frame_id = 'odom'
-
+        # Respond to client
         self.get_logger().info("Req: {:d}. Returned x: {:f} y: {:f} .".format(request.goal_rank,
             goal.pose.position.x, goal.pose.position.y))
         response.goal_pose = goal
         return response
     
-    def select_frontier(self, frontiers) -> PoseStamped:
-        out = PoseStamped()
+    def select_frontier(self, frontiers, rank, alpha, frame) -> PoseStamped:
+        """Return the best frontier from a list
 
-        out.pose.position.x = frontiers[0].x
-        out.pose.position.y = frontiers[0].y
+        Args:
+            frontiers (list): List of frontier objects
+
+        Returns:
+            PoseStamped: Pose of the goal
+        """
+
+        c = self.get_current_pose()
+        for f in frontiers:
+            # Euclidean dist
+            dist = np.sqrt((f.x - c.pose.position.x)**2 + (f.y - c.pose.position.y)**2)
+
+            # Scale the size down so it doesnt dominate distance when selecting
+            # the "best" frontier
+            f.score = 1.0/dist*alpha + np.sqrt(f.size)/100*(1-alpha)
+            print(f.score)
+
+        # Sort based on score, highest to lowest
+        frontiers.sort(reverse=True)
+
+        # Debug
+        print("after sort: ")
+        for f in frontiers:
+            print(f.score)
+
+        # Init and return pose
+        out = PoseStamped()
+        out.pose.position.x = frontiers[rank].x
+        out.pose.position.y = frontiers[rank].y
+        out.header.stamp = self.get_clock().now().to_msg()
+        out.header.frame_id = frame
 
         return out
     
     def get_current_pose(self) -> PoseStamped:
+        """Get robot pose
+
+        Returns:
+            PoseStamped: x,y pose of robot relative to the base link
+        """
         try:
             t = self.tf_buffer.lookup_transform(
                 "odom",
@@ -150,7 +197,18 @@ class FrontierDetectorNode(Node):
         
         self.marker_pub.publish(spheres)
 
-    def pred2regions(self, pred, resolution, origin, width, height):
+    def pred2regions(self, pred, resolution, origin, height):
+        """Convert network predictions to frontier objects
+
+        Args:
+            pred (numpy_array): Network output
+            resolution (float): Map resolution in meters
+            origin (float): Map origin from map_topic.info
+            height (int): Pixel height of the map
+
+        Returns:
+            list: List of frontier objects
+        """
         frontiers = []
         for i in range(pred.shape[0]):
             data = pred[i]
@@ -160,7 +218,7 @@ class FrontierDetectorNode(Node):
 
             x_len = data[2] - data[0]
             y_len = data[3] - data[1]
-            area = x_len*y_len
+            area = abs(x_len*y_len)
 
             x = data[0] + x_len/2.0
             y = data[1] + y_len/2.0

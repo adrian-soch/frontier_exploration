@@ -6,24 +6,25 @@ import torch
 import torch.backends.cudnn as cudnn
 
 from learned_frontier_detector.models.common import DetectMultiBackend
-from learned_frontier_detector.utils.augmentations import letterbox
 from learned_frontier_detector.utils.general import (non_max_suppression, scale_boxes)
 from learned_frontier_detector.utils.torch_utils import time_sync, select_device
 
 DEBUG = True
 
 class FrontierDetector():
-
+    """Create a frontier detector that loads a custom trained yolov5 DNN
+        that predicts frontier regions from occupancy maps converted to images
+    """
     def __init__(self, weights, imgsz=(640,640), conf_thresh=0.6, iou_thres=0.4, max_det=30, device='cpu'):
 
-        yolo_weights= weights
+        yolo_weights= weights   # Path to the network weights
         self.imgsz=imgsz  # inference size (height, width)
         self.conf_thres=conf_thresh  # confidence threshold
         self.iou_thres=iou_thres  # NMS IOU threshold
         self.max_det=max_det  # maximum detections per image
         self.device=device  # cuda device, i.e. 0 or 0,1,2,3 or cpu
         self.half=False  # use FP16 half-precision inference (GPU ONLY)
-        self.classes = [0]
+        self.classes = [0]  # only 1 class (frontier)
 
         # Load model
         self.device = select_device(self.device)
@@ -33,22 +34,16 @@ class FrontierDetector():
     @torch.no_grad()
     def update(self, im):
 
-        t1 = time_sync()
-
         im0 = im.copy()
         im0 = cv2.cvtColor(im0, cv2.COLOR_GRAY2RGB)
 
         # Scale image to (64,64)
         im = cv2.resize(im, (64, 64), interpolation=cv2.INTER_AREA)
-        im = cv2.cvtColor(im, cv2.COLOR_GRAY2RGB)
+        im = cv2.cvtColor(im, cv2.COLOR_GRAY2RGB) # Comvert to 3 channel for yolov5
 
-
-        if DEBUG:
-            cv2.imwrite("/workspace/src/scaled.png", im)
-
+        # Prepare for inference
         im = im.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
         im = np.ascontiguousarray(im)
-
         im = torch.from_numpy(im).to(self.device)
         im = im.half() if self.half else im.float()  # uint8 to fp16/32
         im /= 255.0  # 0 - 255 to 0.0 - 1.0
@@ -63,24 +58,19 @@ class FrontierDetector():
 
         # Process detections
         det = pred[0]
-
         if det is not None and len(det):
             # Rescale boxes from img_size to im0 size
             det[:, :4] = scale_boxes(im.shape[2:], det[:, :4], im0.shape).round()  # xyxy
-        t2 = time_sync()
 
         if DEBUG:
+            # Draw bounding boxes on image and save to disk
             d = det.numpy()
             for i in range(d.shape[0]):
                 data = d[i]
                 start = (np.int32((data[0], data[1])))
                 end = (np.int32((data[2], data[3])))
                 im0 = cv2.rectangle(im0, start, end, (0,255,0), 2)
-
-                print(start, end)
             cv2.imwrite("/workspace/src/result.png", im0)
-
-        # print(t2-t1)
 
         return det
 
