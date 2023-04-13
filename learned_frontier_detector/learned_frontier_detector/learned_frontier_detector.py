@@ -88,7 +88,7 @@ class FrontierDetectorNode(Node):
         pred = self.detector.update(img)
         pred = pred.numpy()  # tensor to numpy
 
-        frontiers = self.pred2regions(pred, map.info.resolution, map.info.origin)
+        frontiers = self.pred2regions(pred, map.info.resolution, map.info.origin, map.info.width, map.info.height)
 
         print(frontiers)
         self.publishMarkers(frontiers)
@@ -126,7 +126,7 @@ class FrontierDetectorNode(Node):
         p = PoseStamped()
         p.pose.position.x = t.transform.translation.x
         p.pose.position.y = t.transform.translation.y
-        p.header.stamp = self.navigator.get_clock().now().to_msg()
+        p.header.stamp = self.get_clock().now().to_msg()
         p.header.frame_id = 'odom'
         return p
     
@@ -150,16 +150,20 @@ class FrontierDetectorNode(Node):
         
         self.marker_pub.publish(spheres)
 
-    def pred2regions(self, pred, resolution, origin):
+    def pred2regions(self, pred, resolution, origin, width, height):
         frontiers = []
         for i in range(pred.shape[0]):
             data = pred[i]
+
+            data[1] = height - data[1]
+            data[3] = height - data[3]
+
             x_len = data[2] - data[0]
             y_len = data[3] - data[1]
             area = x_len*y_len
 
             x = data[0] + x_len/2.0
-            y = data[2] + y_len/2.0
+            y = data[1] + y_len/2.0
             x = x*resolution + origin.position.x
             y = y*resolution + origin.position.y
 

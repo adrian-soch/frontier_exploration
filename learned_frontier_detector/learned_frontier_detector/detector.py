@@ -37,20 +37,14 @@ class FrontierDetector():
 
         im0 = im.copy()
         im0 = cv2.cvtColor(im0, cv2.COLOR_GRAY2RGB)
-        # im = letterbox(im, self.imgsz, stride=32, auto=True)[0]
 
         # Scale image to (64,64)
         im = cv2.resize(im, (64, 64), interpolation=cv2.INTER_AREA)
         im = cv2.cvtColor(im, cv2.COLOR_GRAY2RGB)
 
-        # Flip from map coordinates to image coordinates
-        # im = cv2.flip(im, 0)
 
         if DEBUG:
             cv2.imwrite("/workspace/src/scaled.png", im)
-            # cv2.imwrite("/workspace/src/scaled_flip1.png", im1)
-            # cv2.imwrite("/workspace/src/scaled_flip0.png", im0)
-            # cv2.imwrite("/workspace/src/scaled_flip2.png", im2)
 
         im = im.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
         im = np.ascontiguousarray(im)
@@ -79,8 +73,8 @@ class FrontierDetector():
             d = det.numpy()
             for i in range(d.shape[0]):
                 data = d[i]
-                start = (np.int32((data[0], data[2])))
-                end = (np.int32((data[1], data[3])))
+                start = (np.int32((data[0], data[1])))
+                end = (np.int32((data[2], data[3])))
                 im0 = cv2.rectangle(im0, start, end, (0,255,0), 2)
 
                 print(start, end)
