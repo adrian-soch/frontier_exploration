@@ -30,7 +30,7 @@ class FrontierExplorer(Node):
         self.navigator = BasicNavigator()
 
         self.EXPLORATION_TIME_OUT_SEC = Duration(seconds=1200)
-        self.NAV_TO_GOAL_TIMEOUT_SEC = 180
+        self.NAV_TO_GOAL_TIMEOUT_SEC = 75
         self.DIST_THRESH_FOR_HEADING_CALC = 0.25
 
         self.goal_pose = PoseStamped()
@@ -75,12 +75,12 @@ class FrontierExplorer(Node):
                     self.get_logger().info('Distance remaining: ' + '{:.2f}'.format(
                         feedback.distance_remaining) + ' meters.')
                 
-                # Set goal pose heading to robots current heading once it is close]
-                # This avoids unecessary rotation once reaching the goal position
-                if feedback.distance_remaining <= self.DIST_THRESH_FOR_HEADING_CALC:
-                    self.get_logger().info('Setting new heading')
-                    self.set_goal_heading()
-                    self.navigator.goToPose(self.goal_pose)
+                    # Set goal pose heading to robots current heading once it is close]
+                    # This avoids unecessary rotation once reaching the goal position
+                    if feedback.distance_remaining <= self.DIST_THRESH_FOR_HEADING_CALC:
+                        self.get_logger().info('Setting new heading')
+                        self.set_goal_heading()
+                        self.navigator.goToPose(self.goal_pose)
             
                 # Cancel the goal if robot takes too long
                 if Duration.from_msg(feedback.navigation_time) > Duration(seconds=self.NAV_TO_GOAL_TIMEOUT_SEC):

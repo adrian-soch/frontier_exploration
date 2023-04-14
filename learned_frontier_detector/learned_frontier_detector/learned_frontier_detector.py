@@ -60,16 +60,15 @@ class FrontierDetectorNode(Node):
 
         # Get path to model weights
         weights = get_package_share_directory('learned_frontier_detector') + \
-            '/weights/yolov5n_frontier_64.pt'
+            '/weights/yolov5n_frontier_256.pt'
         
         # Create detector
-        self.detector = FrontierDetector(weights=weights, imgsz=(64,64),
-                conf_thresh=0.6, iou_thres=0.4,max_det=30)
+        self.detector = FrontierDetector(weights=weights, imgsz=(256,256),
+                conf_thresh=0.5, iou_thres=0.4,max_det=20)
 
         self.get_logger().info('Starting detector.')
 
     def map_callback(self, msg):
-        self.get_logger().info('Got message.')
         self.map = msg
 
     def detect_callback(self, request, response):
@@ -109,7 +108,7 @@ class FrontierDetectorNode(Node):
         self.publishMarkers(frontiers)
 
         # Select best frontier
-        goal = self.select_frontier(frontiers, rank=request.goal_rank, alpha=0.6, frame='map')
+        goal = self.select_frontier(frontiers, rank=request.goal_rank, alpha=1, frame='map')
 
         # Respond to client
         self.get_logger().info("Req: {:d}. Returned x: {:f} y: {:f} .".format(request.goal_rank,
@@ -128,17 +127,19 @@ class FrontierDetectorNode(Node):
         """
 
         c = self.get_current_pose()
-        for f in frontiers:
-            # Euclidean dist
-            dist = np.sqrt((f.x - c.pose.position.x)**2 + (f.y - c.pose.position.y)**2)
 
-            # Scale the size down so it doesnt dominate distance when selecting
-            # the "best" frontier
-            f.score = 1.0/dist*alpha + np.sqrt(f.size)/100*(1-alpha)
-            print(f.score)
+        if c is not None:
+            for f in frontiers:
+                # Euclidean dist
+                dist = np.sqrt((f.x - c.pose.position.x)**2 + (f.y - c.pose.position.y)**2)
 
-        # Sort based on score, highest to lowest
-        frontiers.sort(reverse=True)
+                # Scale the size down so it doesnt dominate distance when selecting
+                # the "best" frontier
+                f.score = 1.0/dist*alpha + np.sqrt(f.size)/100*(1-alpha)
+                print(f.score)
+
+            # Sort based on score, highest to lowest
+            frontiers.sort(reverse=True)
 
         # Debug
         print("after sort: ")
@@ -146,12 +147,14 @@ class FrontierDetectorNode(Node):
             print(f.score)
 
         # Init and return pose
-        out = PoseStamped()
-        out.pose.position.x = frontiers[rank].x
-        out.pose.position.y = frontiers[rank].y
-        out.header.stamp = self.get_clock().now().to_msg()
-        out.header.frame_id = frame
-
+        if len(frontiers) >= rank:
+            out = PoseStamped()
+            out.pose.position.x = frontiers[rank].x
+            out.pose.position.y = frontiers[rank].y
+            out.header.stamp = self.get_clock().now().to_msg()
+            out.header.frame_id = frame
+        else:
+            out = None
         return out
     
     def get_current_pose(self) -> PoseStamped:

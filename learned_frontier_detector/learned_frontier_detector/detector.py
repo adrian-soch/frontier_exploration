@@ -15,7 +15,7 @@ class FrontierDetector():
     """Create a frontier detector that loads a custom trained yolov5 DNN
         that predicts frontier regions from occupancy maps converted to images
     """
-    def __init__(self, weights, imgsz=(640,640), conf_thresh=0.6, iou_thres=0.4, max_det=30, device='cpu'):
+    def __init__(self, weights, imgsz=(640,640), conf_thresh=0.5, iou_thres=0.4, max_det=20, device='cpu'):
 
         yolo_weights= weights   # Path to the network weights
         self.imgsz=imgsz  # inference size (height, width)
@@ -37,8 +37,8 @@ class FrontierDetector():
         im0 = im.copy()
         im0 = cv2.cvtColor(im0, cv2.COLOR_GRAY2RGB)
 
-        # Scale image to (64,64)
-        im = cv2.resize(im, (64, 64), interpolation=cv2.INTER_AREA)
+        # Scale image
+        im = cv2.resize(im, self.imgsz, interpolation=cv2.INTER_AREA)
         im = cv2.cvtColor(im, cv2.COLOR_GRAY2RGB) # Comvert to 3 channel for yolov5
 
         # Prepare for inference

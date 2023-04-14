@@ -12,10 +12,7 @@ def generate_launch_description():
             package='learned_frontier_detector',
             executable='frontier_detector',
             name='learned_frontier_detector',
-            output='screen',
-            parameters=[
-                {"weights_path": os.path.join(learned_dir, "weights/yolov5n_frontier_64.pt")}
-            ]
+            output='screen'
         ),
 
         Node(

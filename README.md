@@ -55,3 +55,12 @@ ros2 launch frontier_exploration exploration.launch.py
 2. Then `ros2 run frontier_exploration collection_node`
    - This will preprocess the map through simple filtering operations
    - Save a map after the robot has travelled beyond a distance threshold
+
+
+## Dataset
+
+<a href="https://universe.roboflow.com/cas726/learned-frontier-detection">
+    <img src="https://app.roboflow.com/images/download-dataset-badge.svg"></img>
+</a>
+
+Our dataset is available at the link above.
