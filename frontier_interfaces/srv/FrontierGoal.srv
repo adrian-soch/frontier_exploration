@@ -1,5 +1,5 @@
 # Request
 int8 goal_rank
 ---
-# Responce
+# Response
 geometry_msgs/PoseStamped goal_pose
